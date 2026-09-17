@@ -5,7 +5,7 @@ set -euo pipefail
 RG="${RG:-rg-avd-dashboards}"
 LOCATION="${LOCATION:-eastus}"
 NAME="${NAME:-avddash}"
-IMAGE="${IMAGE:-ghcr.io/OWNER/avd-dashboards:latest}"
+IMAGE="${IMAGE:-ghcr.io/bg-red/avd-dashboards:latest}"
 
 command -v az >/dev/null || { echo "Azure CLI is required: https://aka.ms/azure-cli"; exit 1; }
 

@@ -15,7 +15,7 @@ Leave the redirect URIs for now — the app's URL does not exist yet.
 ## 2. Deploy
 
 ```bash
-RG=rg-avd-dashboards LOCATION=eastus IMAGE=ghcr.io/BG-Red/avd-dashboards:latest ./infra/deploy.sh
+RG=rg-avd-dashboards LOCATION=eastus IMAGE=ghcr.io/bg-red/avd-dashboards:latest ./infra/deploy.sh
 ```
 
 The script asks for the client ID and secret, deploys `infra/main.bicep`, makes the app's
@@ -53,8 +53,8 @@ Then add a connection and follow the wizard.
 ## Updating
 
 ```bash
-az containerapp update -n <prefix>-web -g <rg> --image ghcr.io/BG-Red/avd-dashboards:v0.2.0
-az containerapp update -n <prefix>-worker -g <rg> --image ghcr.io/BG-Red/avd-dashboards:v0.2.0
+az containerapp update -n <prefix>-web -g <rg> --image ghcr.io/bg-red/avd-dashboards:v0.2.0
+az containerapp update -n <prefix>-worker -g <rg> --image ghcr.io/bg-red/avd-dashboards:v0.2.0
 ```
 
 Migrations run at startup under a Postgres advisory lock, so replicas starting at once are safe.

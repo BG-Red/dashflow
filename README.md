@@ -48,7 +48,7 @@ bun run start
 ## Deploy to Azure
 
 ```bash
-IMAGE=ghcr.io/BG-Red/avd-dashboards:latest ./infra/deploy.sh
+IMAGE=ghcr.io/bg-red/avd-dashboards:latest ./infra/deploy.sh
 ```
 
 That creates a Container Apps environment with **Container Apps authentication (EasyAuth)** in
