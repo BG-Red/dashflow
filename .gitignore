@@ -1,0 +1,34 @@
+# deps / build
+node_modules/
+dist/
+*.tsbuildinfo
+coverage/
+playwright-report/
+test-results/
+
+# secrets — never commit these
+.env
+.env.*
+!.env.example
+*.pem
+*.pfx
+*.key
+*.crt
+*.p12
+secrets/
+.azure/
+infra/*.parameters.local.json
+infra/**/*.local.bicepparam
+
+# data dumps / exports that could contain tenant data
+*.dump
+*.sql.gz
+exports/
+fixtures/raw/
+.pgdata/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json

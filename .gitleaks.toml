@@ -1,0 +1,56 @@
+title = "AVD Dashboards gitleaks config"
+
+# Beyond the usual credential rules, this config fails on values that identify a real
+# customer: tenant / subscription GUIDs, onmicrosoft.com domains and Nerdio instance URLs.
+# The placeholders the repo uses on purpose are allow-listed by name.
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "azure-tenant-or-subscription-id"
+description = "Real-looking Entra tenant / subscription / client GUID next to an identifying key"
+regex = '''(?i)(tenant|subscription|client|object|principal|app)[_-]?(id)?["'\s:=]{1,6}([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})'''
+secretGroup = 3
+entropy = 3.0
+  [[rules.allowlists]]
+  description = "Placeholder GUIDs: all zeroes, the demo generator's 0000…4000-8000 range, and all ones"
+  regexes = [
+    '''^0{8}-0{4}-[04]0{3}-[08]0{3}-0{10}\d{2}$''',
+    '''^0{8}-0{4}-0{4}-0{4}-0{12}$''',
+    '''^1{8}-1{4}-1{4}-1{4}-1{12}$''',
+  ]
+
+[[rules]]
+id = "onmicrosoft-domain"
+description = "Real onmicrosoft.com tenant domain"
+regex = '''(?i)\b([a-z0-9-]{3,})\.onmicrosoft\.com\b'''
+secretGroup = 1
+  [[rules.allowlists]]
+  description = "Microsoft's own sample company names, plus generic placeholders"
+  regexes = [
+    '''(?i)^(contoso|fabrikam|adatum|northwind|tailspin|wideworld|proseware|woodgrove|example|yourtenant|tenant|partner|customer|demo)$''',
+  ]
+
+[[rules]]
+id = "nerdio-instance-url"
+description = "Real Nerdio Manager instance URL"
+regex = '''(?i)https://(nmw|nmm|nme)-app-([a-z0-9]{6,})\.azurewebsites\.net'''
+secretGroup = 2
+  [[rules.allowlists]]
+  description = "Documentation placeholders"
+  regexes = ['''(?i)^(example|placeholder|yourinstance|xxxxxx+)$''']
+
+[allowlist]
+description = "Build output, lockfiles, and the deliberately local development key"
+paths = [
+  '''bun\.lock''',
+  '''node_modules''',
+  '''(^|/)dist/''',
+  '''apps/web/dist''',
+]
+regexes = [
+  # docker-compose's local-only encryption key, and the all-sevens key used in a test.
+  '''bG9jYWwtZGV2LW9ubHkta2V5LTMyLWJ5dGVzLS0tLQ==''',
+  '''Buffer\.alloc\(32, 7\)''',
+]

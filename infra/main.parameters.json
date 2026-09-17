@@ -1,0 +1,13 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "name": { "value": "avddash" },
+    "image": { "value": "ghcr.io/OWNER/avd-dashboards:latest" },
+    "authClientId": { "value": "00000000-0000-0000-0000-000000000000" },
+    "authClientSecret": { "value": "" },
+    "bootstrapOwnerObjectIds": { "value": [] },
+    "postgresAdminObjectId": { "value": "00000000-0000-0000-0000-000000000000" },
+    "postgresAdminName": { "value": "you@contoso.onmicrosoft.com" }
+  }
+}

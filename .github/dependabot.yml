@@ -1,0 +1,17 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule: { interval: weekly }
+    open-pull-requests-limit: 5
+    groups:
+      dev-tooling:
+        patterns: ["@biomejs/*", "typescript", "vite", "@vitejs/*", "lefthook", "drizzle-kit"]
+      react:
+        patterns: ["react", "react-dom", "@types/react", "@types/react-dom"]
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule: { interval: weekly }
+  - package-ecosystem: docker
+    directory: "/"
+    schedule: { interval: weekly }

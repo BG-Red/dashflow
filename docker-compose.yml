@@ -1,0 +1,37 @@
+# Local development: Postgres plus the app with dev auth and synthetic data.
+# AUTH_MODE=dev trusts every request, so the app port is published to 127.0.0.1 only.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: avd
+      POSTGRES_PASSWORD: avd
+      POSTGRES_DB: avd
+    ports: ["127.0.0.1:5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U avd"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build: .
+    depends_on:
+      postgres: { condition: service_healthy }
+    ports: ["127.0.0.1:3000:3000"]
+    environment:
+      NODE_ENV: development
+      HOST: 0.0.0.0
+      PORT: 3000
+      APP_ROLE: all
+      DATABASE_URL: postgres://avd:avd@postgres:5432/avd
+      AUTH_MODE: dev
+      DEV_AUTH_ALLOW_REMOTE: "true"
+      DEMO_MODE: "true"
+      # Local-only key. Generate your own for anything real: openssl rand -base64 32
+      APP_ENCRYPTION_KEY: bG9jYWwtZGV2LW9ubHkta2V5LTMyLWJ5dGVzLS0tLQ==
+      LOG_LEVEL: info
+
+volumes:
+  pgdata:
