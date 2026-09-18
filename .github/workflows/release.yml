@@ -23,7 +23,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           # Pinned rather than ${{ github.repository }}: GHCR lowercases image names, so a
           # repository with capitals would publish to a path the docs do not mention.
