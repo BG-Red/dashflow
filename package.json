@@ -27,6 +27,6 @@
     "@playwright/test": "1.63.0",
     "@types/bun": "1.4.2",
     "lefthook": "2.1.14",
-    "typescript": "5.9.3"
+    "typescript": "7.0.2"
   }
 }
