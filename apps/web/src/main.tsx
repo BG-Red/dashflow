@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { Router } from "wouter";
 import { App } from "./app";
 import { ToastProvider } from "./components/ui";
 import { ScopeProvider } from "./lib/scope";
@@ -32,7 +33,10 @@ createRoot(root).render(
       <ThemeProvider>
         <ToastProvider>
           <ScopeProvider>
-            <App />
+            {/* The demo is served from a repository sub-path, so routes hang off the base. */}
+            <Router base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+              <App />
+            </Router>
           </ScopeProvider>
         </ToastProvider>
       </ThemeProvider>
