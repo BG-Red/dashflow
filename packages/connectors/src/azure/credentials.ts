@@ -1,4 +1,4 @@
-import type { CredentialMode } from "@avd/core";
+import type { CredentialMode } from "@dashflow/core";
 import type { TokenFn } from "../http";
 import { ConnectorError } from "../types";
 

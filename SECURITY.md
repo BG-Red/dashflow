@@ -3,7 +3,7 @@
 ## Reporting a vulnerability
 
 Please report security issues privately using GitHub's
-[private vulnerability reporting](https://github.com/BG-Red/AVD_Dashboards/security/advisories/new)
+[private vulnerability reporting](https://github.com/BG-Red/dashflow/security/advisories/new)
 rather than a public issue.
 
 Include what you found, how to reproduce it, and the version or commit. Please do not include

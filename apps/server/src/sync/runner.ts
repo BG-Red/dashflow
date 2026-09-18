@@ -1,6 +1,6 @@
-import { type Connector, createConnector } from "@avd/connectors";
-import type { DiagnosticCheck, SyncStream } from "@avd/core";
-import { schema } from "@avd/db";
+import { type Connector, createConnector } from "@dashflow/connectors";
+import type { DiagnosticCheck, SyncStream } from "@dashflow/core";
+import { schema } from "@dashflow/db";
 import { and, eq, inArray, lt } from "drizzle-orm";
 import type { AppContext } from "../context";
 import { publish } from "../lib/events";

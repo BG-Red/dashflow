@@ -5,13 +5,33 @@ import { timeGrainSchema, timePresetSchema } from "./time";
 export const widgetSizeSchema = z.enum(["sm", "md", "lg", "xl"]);
 export type WidgetSize = z.infer<typeof widgetSizeSchema>;
 
-/** Column span on a 12-column grid, and a pixel height for the body. */
-export const SIZE_SPEC: Record<WidgetSize, { span: number; height: number }> = {
-  sm: { span: 3, height: 120 },
-  md: { span: 6, height: 260 },
-  lg: { span: 6, height: 360 },
-  xl: { span: 12, height: 380 },
+/** Column span on a 12-column grid, a body height, and the grid rows a size occupies. */
+export const SIZE_SPEC: Record<WidgetSize, { span: number; height: number; rows: number }> = {
+  sm: { span: 3, height: 120, rows: 4 },
+  md: { span: 6, height: 260, rows: 7 },
+  lg: { span: 6, height: 360, rows: 9 },
+  xl: { span: 12, height: 380, rows: 10 },
 };
+
+/** One grid row in pixels, including the gap — the unit drag and resize snap to. */
+export const GRID_ROW_HEIGHT = 44;
+export const GRID_COLUMNS = 12;
+
+/**
+ * Where a widget sits once someone has dragged it. Dashboards saved before layouts existed
+ * simply have none, and fall back to flowing by size — so nothing needs migrating.
+ */
+export const widgetLayoutSchema = z.object({
+  x: z
+    .number()
+    .int()
+    .min(0)
+    .max(GRID_COLUMNS - 1),
+  y: z.number().int().min(0).max(400),
+  w: z.number().int().min(1).max(GRID_COLUMNS),
+  h: z.number().int().min(2).max(40),
+});
+export type WidgetLayout = z.infer<typeof widgetLayoutSchema>;
 
 export const widgetFiltersSchema = z.object({
   hostPools: z.array(z.string()).optional(),
@@ -34,6 +54,7 @@ export const widgetSchema = z
     /** KPI only: also fetch the previous period for a delta. */
     compare: z.boolean().default(true),
     size: widgetSizeSchema.default("md"),
+    layout: widgetLayoutSchema.optional(),
   })
   .refine((w) => getMetric(w.metric) !== undefined, { message: "Unknown metric" })
   .refine((w) => getMetric(w.metric)?.viz.includes(w.viz) ?? false, {
@@ -133,6 +154,28 @@ export type QueryResult =
         lastHeartBeat: string | null;
       }[];
     };
+
+/** Lay widgets out left to right by size, for dashboards that have never been arranged. */
+export function defaultLayout(widgets: WidgetSpec[]): (WidgetSpec & { layout: WidgetLayout })[] {
+  let x = 0;
+  let y = 0;
+  let rowHeight = 0;
+  return widgets.map((widget) => {
+    if (widget.layout) {
+      return { ...widget, layout: widget.layout };
+    }
+    const spec = SIZE_SPEC[widget.size];
+    if (x + spec.span > GRID_COLUMNS) {
+      x = 0;
+      y += rowHeight;
+      rowHeight = 0;
+    }
+    const layout = { x, y, w: spec.span, h: spec.rows };
+    x += spec.span;
+    rowHeight = Math.max(rowHeight, spec.rows);
+    return { ...widget, layout };
+  });
+}
 
 export function vizResultKind(viz: WidgetSpec["viz"]): QueryResult["kind"] {
   switch (viz) {

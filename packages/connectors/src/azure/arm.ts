@@ -1,5 +1,5 @@
-import type { AppGroupRecord, HostPoolRecord, ScalingPlanRecord, SessionHostRecord } from "@avd/core";
-import { normalizeResourceId, parseResourceId } from "@avd/core";
+import type { AppGroupRecord, HostPoolRecord, ScalingPlanRecord, SessionHostRecord } from "@dashflow/core";
+import { normalizeResourceId, parseResourceId } from "@dashflow/core";
 import { armList, httpJson, type TokenFn } from "../http";
 import { SCOPES } from "./credentials";
 

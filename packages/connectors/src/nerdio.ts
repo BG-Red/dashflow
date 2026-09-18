@@ -5,8 +5,8 @@ import type {
   NerdioConfig,
   SessionHostRecord,
   SyncBatch,
-} from "@avd/core";
-import { normalizeResourceId } from "@avd/core";
+} from "@dashflow/core";
+import { normalizeResourceId } from "@dashflow/core";
 import { hostHealthFrom, isHealthy, roundToFiveMinutes } from "./azure/collectors";
 import { createTokenFn } from "./azure/credentials";
 import { httpJson, type TokenFn } from "./http";

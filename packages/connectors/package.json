@@ -1,5 +1,5 @@
 {
-  "name": "@avd/connectors",
+  "name": "@dashflow/connectors",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -7,9 +7,9 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@avd/core": "workspace:*",
+    "@dashflow/core": "workspace:*",
     "@azure/identity": "4.13.3",
     "zod": "4.6.5",
-    "@avd/demo": "workspace:*"
+    "@dashflow/demo": "workspace:*"
   }
 }

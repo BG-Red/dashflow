@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-import { runMigrations } from "@avd/db/migrate";
+import { runMigrations } from "@dashflow/db/migrate";
 import { createApp } from "./app";
 import { ensureBootstrapCode } from "./auth/bootstrap";
 import { createContext } from "./context";
@@ -12,7 +12,7 @@ const ctx = await createContext(env);
 
 ctx.log.info(
   { role: env.APP_ROLE, authMode: env.AUTH_MODE, demoMode: env.DEMO_MODE, nodeEnv: env.NODE_ENV },
-  "starting AVD Dashboards",
+  "starting DashFlow",
 );
 
 await runMigrations(ctx.db, (msg) => ctx.log.info(msg));

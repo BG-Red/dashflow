@@ -8,8 +8,8 @@ import {
   type Series,
   scopeTenants,
   type TimeGrain,
-} from "@avd/core";
-import type { Db } from "@avd/db";
+} from "@dashflow/core";
+import type { Db } from "@dashflow/db";
 import { type SQL, sql } from "drizzle-orm";
 
 /**
@@ -75,7 +75,7 @@ export function arrayParam(values: string[], castTo: "uuid" | "text"): SQL {
   )}]${cast}`;
 }
 
-function dimExpr(metric: MetricDef, dim: DimensionId): SQL {
+export function dimensionExpression(metric: MetricDef, dim: DimensionId): SQL {
   const expr = metric.dims[dim];
   if (!expr) throw new QueryError(`Metric ${metric.id} cannot be grouped or filtered by ${dim}`);
   return sql.raw(expr);
@@ -108,7 +108,7 @@ function buildWhere(metric: MetricDef, req: QueryRequest, access: Access): SQL {
 
   for (const [dim, values] of Object.entries(req.filters.dims ?? {})) {
     if (!values || values.length === 0) continue;
-    parts.push(sql`${dimExpr(metric, dim as DimensionId)} = any(${arrayParam(values, "text")})`);
+    parts.push(sql`${dimensionExpression(metric, dim as DimensionId)} = any(${arrayParam(values, "text")})`);
   }
   return sql.join(parts, sql` and `);
 }
@@ -132,7 +132,7 @@ function num(value: unknown): number | null {
 
 type Row = Record<string, unknown>;
 
-async function rows(db: Db, statement: SQL): Promise<Row[]> {
+export async function rowsFrom(db: Db, statement: SQL): Promise<Row[]> {
   const result = await db.execute(statement);
   return (Array.isArray(result) ? result : ((result as { rows?: Row[] }).rows ?? [])) as Row[];
 }
@@ -150,10 +150,10 @@ async function scalar(db: Db, c: Compiled, _req: QueryRequest, _opts: QueryOptio
         where ${c.where}
         group by 1
       ) s`;
-    const [row] = await rows(db, statement);
+    const [row] = await rowsFrom(db, statement);
     return num(row?.value);
   }
-  const [row] = await rows(db, sql`select ${agg} as value ${c.from} where ${c.where}`);
+  const [row] = await rowsFrom(db, sql`select ${agg} as value ${c.from} where ${c.where}`);
   return num(row?.value);
 }
 
@@ -170,7 +170,7 @@ async function series(
   const tz = tzOf(opts);
   const grain = grainKeyword(req.grain);
   const agg = sql.raw(metric.agg);
-  const group = req.groupBy ? dimExpr(metric, req.groupBy) : null;
+  const group = req.groupBy ? dimensionExpression(metric, req.groupBy) : null;
   const grpSelect = group ? sql`coalesce(${group}::text, 'Unknown')` : sql`'total'::text`;
 
   const inner = metric.innerKey
@@ -217,7 +217,7 @@ async function series(
         with staged as (${staged})
         select (bucket at time zone ${tz}) as ts, grp, value from staged order by grp, bucket`;
 
-  const result = await rows(db, statement);
+  const result = await rowsFrom(db, statement);
   const byGroup = new Map<string, Series>();
   for (const row of result) {
     const name = String(row.grp ?? "total");
@@ -236,7 +236,7 @@ async function series(
 async function breakdown(db: Db, c: Compiled, req: QueryRequest): Promise<{ name: string; value: number }[]> {
   const { metric } = c;
   const agg = sql.raw(metric.agg);
-  const group = req.groupBy ? dimExpr(metric, req.groupBy) : null;
+  const group = req.groupBy ? dimensionExpression(metric, req.groupBy) : null;
   const grpSelect = group ? sql`coalesce(${group}::text, 'Unknown')` : sql`'total'::text`;
 
   const statement =
@@ -252,7 +252,7 @@ async function breakdown(db: Db, c: Compiled, req: QueryRequest): Promise<{ name
           ${c.from} where ${c.where}
           group by 1 order by 2 desc nulls last limit ${req.topN}`;
 
-  return (await rows(db, statement))
+  return (await rowsFrom(db, statement))
     .map((row) => ({ name: String(row.grp ?? "Unknown"), value: num(row.value) ?? 0 }))
     .filter((item) => item.name !== "");
 }
@@ -287,7 +287,7 @@ async function heatmap(
                  ${agg} as value
           ${c.from} where ${c.where} group by 1, 2`;
 
-  return (await rows(db, statement)).map((row) => ({
+  return (await rowsFrom(db, statement)).map((row) => ({
     day: Number(row.day),
     hour: Number(row.hour),
     value: num(row.value) ?? 0,
@@ -306,7 +306,7 @@ async function hostGrid(db: Db, req: QueryRequest, access: Access) {
   const pools = req.filters.hostPools;
   if (pools && pools.length > 0) filters.push(sql`sh.host_pool_id = any(${arrayParam(pools, "text")})`);
 
-  const result = await rows(
+  const result = await rowsFrom(
     db,
     sql`
       select sh.name, coalesce(hp.friendly_name, hp.name) as host_pool, ct.display_name as tenant,

@@ -1,7 +1,12 @@
 import { randomUUID } from "node:crypto";
-import { buildConsentUrl, redeemConsentCode } from "@avd/connectors";
-import { connectionConfigSchema, DEFAULT_SCHEDULE, secretInputSchema, syncScheduleSchema } from "@avd/core";
-import { schema } from "@avd/db";
+import { buildConsentUrl, redeemConsentCode } from "@dashflow/connectors";
+import {
+  connectionConfigSchema,
+  DEFAULT_SCHEDULE,
+  secretInputSchema,
+  syncScheduleSchema,
+} from "@dashflow/core";
+import { schema } from "@dashflow/db";
 import { desc, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";

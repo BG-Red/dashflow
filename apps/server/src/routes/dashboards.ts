@@ -1,6 +1,6 @@
-import { dashboardSchema, hasRole, type Role, roleRank, templateFor } from "@avd/core";
-import { schema } from "@avd/db";
-import { desc, eq } from "drizzle-orm";
+import { dashboardSchema, hasRole, type Role, roleRank, templateFor } from "@dashflow/core";
+import { schema } from "@dashflow/db";
+import { and, desc, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
@@ -27,7 +27,15 @@ export function dashboardRoutes(ctx: AppContext) {
   app.get("/", async (c) => {
     const user = c.get("user");
     const access = requireAccess(user, "viewer");
-    const rows = await ctx.db.select().from(schema.dashboards).orderBy(desc(schema.dashboards.updatedAt));
+    const [rows, favorites] = await Promise.all([
+      ctx.db.select().from(schema.dashboards).orderBy(desc(schema.dashboards.updatedAt)),
+      ctx.db
+        .select({ dashboardId: schema.dashboardFavorites.dashboardId })
+        .from(schema.dashboardFavorites)
+        .where(eq(schema.dashboardFavorites.userId, user.id)),
+    ]);
+    const favorited = new Set(favorites.map((row) => row.dashboardId));
+
     return c.json(
       rows
         .filter((row) => canRead(row, user.id, access.role))
@@ -42,8 +50,10 @@ export function dashboardRoutes(ctx: AppContext) {
           defaultPreset: row.defaultPreset,
           tenantScope: row.tenantScope,
           isOwner: row.ownerId === user.id,
+          favorite: favorited.has(row.id),
           updatedAt: row.updatedAt,
-        })),
+        }))
+        .sort((a, b) => Number(b.favorite) - Number(a.favorite)),
     );
   });
 
@@ -140,6 +150,62 @@ export function dashboardRoutes(ctx: AppContext) {
       })
       .where(eq(schema.dashboards.id, id));
     return c.json({ ok: true });
+  });
+
+  app.put("/:id/favorite", async (c) => {
+    const user = c.get("user");
+    const access = requireAccess(user, "viewer");
+    const row = await ctx.db.query.dashboards.findFirst({
+      where: eq(schema.dashboards.id, c.req.param("id")),
+    });
+    if (!row || !canRead(row, user.id, access.role))
+      throw new HTTPException(404, { message: "No such dashboard" });
+    await ctx.db
+      .insert(schema.dashboardFavorites)
+      .values({ userId: user.id, dashboardId: row.id })
+      .onConflictDoNothing();
+    return c.json({ ok: true });
+  });
+
+  app.delete("/:id/favorite", async (c) => {
+    const user = c.get("user");
+    requireAccess(user, "viewer");
+    await ctx.db
+      .delete(schema.dashboardFavorites)
+      .where(
+        and(
+          eq(schema.dashboardFavorites.userId, user.id),
+          eq(schema.dashboardFavorites.dashboardId, c.req.param("id")),
+        ),
+      );
+    return c.json({ ok: true });
+  });
+
+  /** Copy a dashboard someone shared, so it can be changed without touching theirs. */
+  app.post("/:id/duplicate", async (c) => {
+    const user = c.get("user");
+    const access = requireAccess(user, "analyst");
+    const source = await ctx.db.query.dashboards.findFirst({
+      where: eq(schema.dashboards.id, c.req.param("id")),
+    });
+    if (!source || !canRead(source, user.id, access.role)) {
+      throw new HTTPException(404, { message: "No such dashboard" });
+    }
+    const [copy] = await ctx.db
+      .insert(schema.dashboards)
+      .values({
+        name: `${source.name} (copy)`,
+        description: source.description,
+        goal: source.goal,
+        widgets: source.widgets,
+        defaultPreset: source.defaultPreset,
+        tenantScope: source.tenantScope,
+        visibility: "private",
+        sharedWithRole: "viewer",
+        ownerId: user.id,
+      })
+      .returning({ id: schema.dashboards.id });
+    return c.json({ id: copy!.id }, 201);
   });
 
   app.delete("/:id", async (c) => {

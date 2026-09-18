@@ -1,5 +1,5 @@
-import { scopeTenants } from "@avd/core";
-import { schema } from "@avd/db";
+import { scopeTenants } from "@dashflow/core";
+import { schema } from "@dashflow/db";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";

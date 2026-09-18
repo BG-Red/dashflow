@@ -2,10 +2,10 @@
 # One-shot deploy to Azure Container Apps. Reads values interactively; nothing is written to disk.
 set -euo pipefail
 
-RG="${RG:-rg-avd-dashboards}"
+RG="${RG:-rg-dashflow}"
 LOCATION="${LOCATION:-eastus}"
 NAME="${NAME:-avddash}"
-IMAGE="${IMAGE:-ghcr.io/bg-red/avd-dashboards:latest}"
+IMAGE="${IMAGE:-ghcr.io/bg-red/dashflow:latest}"
 
 command -v az >/dev/null || { echo "Azure CLI is required: https://aka.ms/azure-cli"; exit 1; }
 
@@ -25,13 +25,13 @@ az deployment group create \
   -p name="$NAME" image="$IMAGE" authClientId="$AUTH_CLIENT_ID" authClientSecret="$AUTH_CLIENT_SECRET" \
      postgresAdminObjectId="$ADMIN_ID" postgresAdminName="$ADMIN_UPN" \
      bootstrapOwnerObjectIds="[\"$ADMIN_ID\"]" \
-  -o json --query properties.outputs > /tmp/avd-outputs.json
+  -o json --query properties.outputs > /tmp/dashflow-outputs.json
 
-IDENTITY_PRINCIPAL=$(python3 -c 'import json;print(json.load(open("/tmp/avd-outputs.json"))["identityPrincipalId"]["value"])')
-IDENTITY_NAME="$(python3 -c 'import json;print(json.load(open("/tmp/avd-outputs.json"))["postgresHost"]["value"].split(".")[0])')"
-PG_SERVER=$(python3 -c 'import json;print(json.load(open("/tmp/avd-outputs.json"))["postgresHost"]["value"].split(".")[0])')
-WEB_URL=$(python3 -c 'import json;print(json.load(open("/tmp/avd-outputs.json"))["webUrl"]["value"])')
-REDIRECT=$(python3 -c 'import json;print(json.load(open("/tmp/avd-outputs.json"))["consentRedirectUri"]["value"])')
+IDENTITY_PRINCIPAL=$(python3 -c 'import json;print(json.load(open("/tmp/dashflow-outputs.json"))["identityPrincipalId"]["value"])')
+IDENTITY_NAME="$(python3 -c 'import json;print(json.load(open("/tmp/dashflow-outputs.json"))["postgresHost"]["value"].split(".")[0])')"
+PG_SERVER=$(python3 -c 'import json;print(json.load(open("/tmp/dashflow-outputs.json"))["postgresHost"]["value"].split(".")[0])')
+WEB_URL=$(python3 -c 'import json;print(json.load(open("/tmp/dashflow-outputs.json"))["webUrl"]["value"])')
+REDIRECT=$(python3 -c 'import json;print(json.load(open("/tmp/dashflow-outputs.json"))["consentRedirectUri"]["value"])')
 
 # Administrator resources need a name known before deployment, so the app identity is added here.
 echo "Making the app identity a Postgres administrator…"
@@ -41,7 +41,7 @@ az postgres flexible-server ad-admin create \
   -i "$IDENTITY_PRINCIPAL" \
   -t ServicePrincipal -o none
 
-rm -f /tmp/avd-outputs.json
+rm -f /tmp/dashflow-outputs.json
 
 cat <<SUMMARY
 

@@ -1,5 +1,5 @@
-import { DEFAULT_SCHEDULE } from "@avd/core";
-import { schema } from "@avd/db";
+import { DEFAULT_SCHEDULE } from "@dashflow/core";
+import { schema } from "@dashflow/db";
 import { eq } from "drizzle-orm";
 import type { AppContext } from "../context";
 import { enqueue } from "../worker/queue";

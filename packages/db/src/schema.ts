@@ -5,7 +5,7 @@ import type {
   Role,
   SyncSchedule,
   WidgetSpec,
-} from "@avd/core";
+} from "@dashflow/core";
 import { relations, sql } from "drizzle-orm";
 import {
   bigserial,
@@ -455,6 +455,21 @@ export const dashboards = pgTable(
     updatedAt: ts("updated_at").notNull().defaultNow(),
   },
   (t) => [index("dashboards_owner_idx").on(t.ownerId)],
+);
+
+/** A per-user pin, so the dashboards someone actually uses float to the top of their list. */
+export const dashboardFavorites = pgTable(
+  "dashboard_favorites",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    dashboardId: uuid("dashboard_id")
+      .notNull()
+      .references(() => dashboards.id, { onDelete: "cascade" }),
+    createdAt: now(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.dashboardId] })],
 );
 
 export const connectionsRelations = relations(connections, ({ many }) => ({

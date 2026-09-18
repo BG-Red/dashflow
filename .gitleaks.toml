@@ -1,4 +1,4 @@
-title = "AVD Dashboards gitleaks config"
+title = "DashFlow gitleaks config"
 
 # Beyond the usual credential rules, this config fails on values that identify a real
 # customer: tenant / subscription GUIDs, onmicrosoft.com domains and Nerdio instance URLs.

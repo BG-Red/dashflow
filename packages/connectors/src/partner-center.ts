@@ -1,4 +1,4 @@
-import type { DiagnosticCheck, Discovery, PartnerCenterConfig, SyncBatch } from "@avd/core";
+import type { DiagnosticCheck, Discovery, PartnerCenterConfig, SyncBatch } from "@dashflow/core";
 import { AzureCollector } from "./azure/collectors";
 import { createRefreshTokenFn, SCOPES } from "./azure/credentials";
 import { httpJson } from "./http";

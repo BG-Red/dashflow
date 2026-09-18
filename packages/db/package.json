@@ -1,5 +1,5 @@
 {
-  "name": "@avd/db",
+  "name": "@dashflow/db",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -12,7 +12,7 @@
     "generate": "drizzle-kit generate"
   },
   "dependencies": {
-    "@avd/core": "workspace:*",
+    "@dashflow/core": "workspace:*",
     "drizzle-orm": "0.45.2",
     "postgres": "3.4.9"
   },

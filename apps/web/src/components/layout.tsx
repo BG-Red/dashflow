@@ -1,178 +1,186 @@
-import { TIME_PRESETS, type TimePreset } from "@avd/core";
+import { TIME_PRESETS, type TimePreset } from "@dashflow/core";
 import { useQuery } from "@tanstack/react-query";
 import {
   Activity,
   Building2,
-  Check,
-  ChevronDown,
+  ChevronsLeft,
+  Compass,
   LayoutDashboard,
+  type LucideIcon,
   Monitor,
   Moon,
+  PanelsTopLeft,
   Plug,
+  Search,
+  Settings,
   Sun,
+  TriangleAlert,
   Users,
 } from "lucide-react";
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { api, type Me } from "../lib/api";
 import { useScope } from "../lib/scope";
 import { type ThemeChoice, useTheme } from "../lib/theme";
 import { cn } from "../lib/utils";
-import { Badge, Button } from "./ui";
+import { CommandPalette } from "./command-palette";
+import { Badge, Kbd, MultiSelect, SegmentedControl } from "./ui";
 
-const NAV = [
+const NAV: { href: string; label: string; icon: LucideIcon; minRole: "viewer" | "analyst" | "admin" }[] = [
   { href: "/", label: "Dashboards", icon: LayoutDashboard, minRole: "viewer" },
-  { href: "/connections", label: "Connections", icon: Plug, minRole: "admin" },
+  { href: "/explore", label: "Explore", icon: Compass, minRole: "viewer" },
   { href: "/customers", label: "Customers", icon: Building2, minRole: "viewer" },
+  { href: "/errors", label: "Errors", icon: TriangleAlert, minRole: "viewer" },
+  { href: "/connections", label: "Connections", icon: Plug, minRole: "admin" },
   { href: "/sync", label: "Sync health", icon: Activity, minRole: "admin" },
   { href: "/users", label: "Users & roles", icon: Users, minRole: "admin" },
-] as const;
+  { href: "/settings", label: "Settings", icon: Settings, minRole: "admin" },
+];
 
 const ROLE_RANK = { viewer: 0, analyst: 1, admin: 2, owner: 3 } as const;
+const SIDEBAR_KEY = "dashflow.sidebar";
 
-function useOutsideClose(onClose: () => void) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    const handler = (event: MouseEvent) => {
-      if (ref.current && !ref.current.contains(event.target as Node)) onClose();
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [onClose]);
-  return ref;
-}
-
-function TenantSwitcher({ tenants }: { tenants: Me["tenants"] }) {
-  const { tenantIds, setTenantIds } = useScope();
-  const [open, setOpen] = useState(false);
-  const ref = useOutsideClose(() => setOpen(false));
-
-  const selected = tenantIds === null ? tenants : tenants.filter((tenant) => tenantIds.includes(tenant.id));
-  const label =
-    tenantIds === null
-      ? `All customers (${tenants.length})`
-      : selected.length === 1
-        ? (selected[0]?.displayName ?? "1 customer")
-        : `${selected.length} customers`;
-
-  const toggle = (id: string) => {
-    const current = tenantIds === null ? tenants.map((tenant) => tenant.id) : tenantIds;
-    const next = current.includes(id) ? current.filter((value) => value !== id) : [...current, id];
-    setTenantIds(next.length === 0 || next.length === tenants.length ? null : next);
-  };
-
-  if (tenants.length === 0) return null;
-
+export function Logo({ collapsed }: { collapsed?: boolean }) {
   return (
-    <div className="relative" ref={ref}>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => setOpen((value) => !value)}
-        className="max-w-[16rem]"
-      >
-        <Building2 size={14} className="shrink-0 text-[var(--text-muted)]" />
-        <span className="truncate">{label}</span>
-        <ChevronDown size={14} className="shrink-0 text-[var(--text-muted)]" />
-      </Button>
-      {open ? (
-        <div className="absolute right-0 z-30 mt-1.5 w-72 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-1 shadow-xl">
-          <button
-            type="button"
-            onClick={() => setTenantIds(null)}
-            className="flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-sm hover:bg-[var(--surface-2)]"
-          >
-            <span>All customers</span>
-            {tenantIds === null ? <Check size={14} className="text-[var(--accent)]" /> : null}
-          </button>
-          <div className="my-1 h-px bg-[var(--border)]" />
-          <div className="max-h-72 overflow-auto">
-            {tenants.map((tenant) => {
-              const active = tenantIds === null || tenantIds.includes(tenant.id);
-              return (
-                <button
-                  type="button"
-                  key={tenant.id}
-                  onClick={() => toggle(tenant.id)}
-                  className="flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-left text-sm hover:bg-[var(--surface-2)]"
-                >
-                  <span className="min-w-0">
-                    <span className="block truncate text-[var(--text-primary)]">{tenant.displayName}</span>
-                    {tenant.domain ? (
-                      <span className="block truncate text-[11px] text-[var(--text-muted)]">
-                        {tenant.domain}
-                      </span>
-                    ) : null}
-                  </span>
-                  {active ? <Check size={14} className="shrink-0 text-[var(--accent)]" /> : null}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+    <span className="flex items-center gap-2">
+      <svg viewBox="0 0 64 64" className="h-7 w-7 shrink-0" aria-hidden>
+        <defs>
+          <linearGradient id="df-logo" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#3987e5" />
+            <stop offset="1" stopColor="#1c5cab" />
+          </linearGradient>
+        </defs>
+        <rect width="64" height="64" rx="15" fill="url(#df-logo)" />
+        <g fill="#fff">
+          <rect x="13" y="40" width="16" height="6" rx="3" />
+          <rect x="19" y="29" width="24" height="6" rx="3" fillOpacity="0.82" />
+          <rect x="27" y="18" width="24" height="6" rx="3" fillOpacity="0.64" />
+        </g>
+      </svg>
+      {!collapsed ? (
+        <span className="text-[15px] font-semibold tracking-tight text-[var(--text-primary)]">DashFlow</span>
       ) : null}
-    </div>
-  );
-}
-
-function TimeRangePicker() {
-  const { preset, setPreset } = useScope();
-  return (
-    <div className="flex items-center rounded-lg border border-[var(--border-strong)] bg-[var(--surface-1)] p-0.5">
-      {(Object.keys(TIME_PRESETS) as TimePreset[]).map((key) => (
-        <button
-          key={key}
-          type="button"
-          onClick={() => setPreset(key)}
-          title={TIME_PRESETS[key].label}
-          className={cn(
-            "rounded-md px-2.5 py-1 text-[13px] font-medium transition-colors",
-            preset === key
-              ? "bg-[var(--accent-soft)] text-[var(--accent)]"
-              : "text-[var(--text-muted)] hover:text-[var(--text-primary)]",
-          )}
-        >
-          {key}
-        </button>
-      ))}
-    </div>
+    </span>
   );
 }
 
 function ThemeToggle() {
   const { choice, setChoice } = useTheme();
-  const order: ThemeChoice[] = ["system", "light", "dark"];
+  const order: ThemeChoice[] = ["system", "dark", "light"];
   const Icon = choice === "system" ? Monitor : choice === "light" ? Sun : Moon;
   return (
-    <Button
-      variant="ghost"
-      size="sm"
+    <button
+      type="button"
       aria-label={`Theme: ${choice}`}
       title={`Theme: ${choice}`}
       onClick={() => setChoice(order[(order.indexOf(choice) + 1) % order.length]!)}
+      className="grid h-8 w-8 place-items-center rounded-[var(--radius-sm)] text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)]"
     >
       <Icon size={15} />
-    </Button>
+    </button>
+  );
+}
+
+/** Customers, host pools and the time range — the scope every screen reads. */
+function ScopeBar({ me }: { me: Me }) {
+  const { tenantIds, setTenantIds, hostPools, setHostPools, preset, setPreset } = useScope();
+  const { data: pools } = useQuery({ queryKey: ["host-pools"], queryFn: api.hostPools });
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      {me.tenants.length > 1 ? (
+        <MultiSelect
+          label="Customers"
+          allLabel="All customers"
+          icon={<Building2 size={13} />}
+          options={me.tenants.map((tenant) => ({
+            value: tenant.id,
+            label: tenant.displayName,
+            hint: tenant.domain ?? undefined,
+          }))}
+          selected={tenantIds}
+          onChange={setTenantIds}
+        />
+      ) : null}
+
+      {pools && pools.length > 1 ? (
+        <MultiSelect
+          label="Host pools"
+          allLabel="All host pools"
+          icon={<PanelsTopLeft size={13} />}
+          options={pools.map((pool) => ({
+            value: pool.resourceId,
+            label: pool.friendlyName ?? pool.name,
+            hint: `${pool.tenantName} · ${pool.poolType}`,
+          }))}
+          selected={hostPools.length === 0 ? null : hostPools}
+          onChange={(next) => setHostPools(next ?? [])}
+        />
+      ) : null}
+
+      <SegmentedControl
+        ariaLabel="Time range"
+        value={preset}
+        onChange={(value) => setPreset(value as TimePreset)}
+        options={(Object.keys(TIME_PRESETS) as TimePreset[]).map((key) => ({
+          value: key,
+          label: key,
+          title: TIME_PRESETS[key].label,
+        }))}
+      />
+    </div>
   );
 }
 
 export function AppShell({ me, children }: { me: Me; children: ReactNode }) {
   const [location] = useLocation();
   const role = me.user.role ?? "viewer";
-  const { data: hostPools } = useQuery({ queryKey: ["host-pools"], queryFn: api.hostPools });
-  const { hostPools: selectedPools, setHostPools } = useScope();
+  const [collapsed, setCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem(SIDEBAR_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(SIDEBAR_KEY, collapsed ? "1" : "0");
+    } catch {
+      // A remembered sidebar is a convenience, not a requirement.
+    }
+  }, [collapsed]);
 
   const visibleNav = NAV.filter((item) => ROLE_RANK[role] >= ROLE_RANK[item.minRole]);
 
   return (
     <div className="flex min-h-screen">
-      <aside className="hidden w-56 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surface-1)] md:flex">
-        <div className="flex items-center gap-2 px-4 py-4">
-          <span className="grid h-7 w-7 place-items-center rounded-lg bg-[var(--accent)] text-[13px] font-bold text-[var(--accent-ink)]">
-            AVD
-          </span>
-          <span className="text-sm font-semibold tracking-tight">Dashboards</span>
+      <CommandPalette />
+
+      <aside
+        className={cn(
+          "sticky top-0 hidden h-screen shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surface-1)] transition-[width] duration-200 md:flex",
+          collapsed ? "w-[60px]" : "w-56",
+        )}
+      >
+        <div
+          className={cn("flex h-14 items-center", collapsed ? "justify-center px-2" : "justify-between px-4")}
+        >
+          <Link href="/" aria-label="DashFlow home">
+            <Logo collapsed={collapsed} />
+          </Link>
+          {!collapsed ? (
+            <button
+              type="button"
+              aria-label="Collapse sidebar"
+              onClick={() => setCollapsed(true)}
+              className="grid h-6 w-6 place-items-center rounded text-[var(--text-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)]"
+            >
+              <ChevronsLeft size={15} />
+            </button>
+          ) : null}
         </div>
+
         <nav className="flex-1 space-y-0.5 px-2">
           {visibleNav.map((item) => {
             const active =
@@ -183,55 +191,73 @@ export function AppShell({ me, children }: { me: Me; children: ReactNode }) {
               <Link
                 key={item.href}
                 href={item.href}
+                title={collapsed ? item.label : undefined}
                 className={cn(
-                  "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors",
+                  "flex items-center gap-2.5 rounded-[var(--radius-sm)] py-2 text-[13px] transition-colors",
+                  collapsed ? "justify-center px-2" : "px-2.5",
                   active
                     ? "bg-[var(--accent-soft)] font-medium text-[var(--accent)]"
                     : "text-[var(--text-secondary)] hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)]",
                 )}
               >
-                <item.icon size={16} />
-                {item.label}
+                <item.icon size={16} className="shrink-0" />
+                {!collapsed ? item.label : null}
               </Link>
             );
           })}
         </nav>
-        <div className="space-y-2 border-t border-[var(--border)] px-3 py-3">
-          {me.instance.demoMode ? <Badge tone="warning">Demo data on</Badge> : null}
-          {me.instance.authMode === "dev" ? <Badge tone="critical">Dev auth</Badge> : null}
-          <div className="text-[11px] leading-relaxed text-[var(--text-muted)]">
-            <p className="truncate text-[var(--text-secondary)]">{me.user.email}</p>
-            <p className="capitalize">{me.user.role ?? "no access"}</p>
-          </div>
+
+        <div className={cn("space-y-2 border-t border-[var(--border)] py-3", collapsed ? "px-2" : "px-3")}>
+          {collapsed ? (
+            <button
+              type="button"
+              aria-label="Expand sidebar"
+              onClick={() => setCollapsed(false)}
+              className="grid h-7 w-full place-items-center rounded text-[var(--text-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)]"
+            >
+              <ChevronsLeft size={15} className="rotate-180" />
+            </button>
+          ) : (
+            <>
+              <div className="flex flex-wrap gap-1">
+                {me.instance.demoMode ? <Badge tone="warning">Demo data</Badge> : null}
+                {me.instance.authMode === "dev" ? <Badge tone="critical">Dev auth</Badge> : null}
+              </div>
+              <div className="text-[11px] leading-relaxed text-[var(--text-muted)]">
+                <p className="truncate text-[var(--text-secondary)]">{me.user.email}</p>
+                <p className="capitalize">{me.user.role ?? "no access"}</p>
+              </div>
+            </>
+          )}
         </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-20 flex flex-wrap items-center gap-2 border-b border-[var(--border)] bg-[var(--surface-0)]/95 px-4 py-2.5 backdrop-blur">
-          <Link href="/" className="mr-auto text-sm font-semibold tracking-tight md:hidden">
-            AVD Dashboards
+        <header className="sticky top-0 z-30 flex h-14 flex-wrap items-center gap-2 border-b border-[var(--border)] bg-[var(--surface-0)]/90 px-4 backdrop-blur-md">
+          <Link href="/" className="mr-2 md:hidden">
+            <Logo collapsed />
           </Link>
+
+          <button
+            type="button"
+            onClick={() =>
+              // The palette listens for the same shortcut this button advertises.
+              document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true }))
+            }
+            className="hidden h-8 items-center gap-2 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-1)] px-2.5 text-[13px] text-[var(--text-muted)] transition-colors hover:border-[var(--border-strong)] hover:text-[var(--text-secondary)] lg:flex"
+          >
+            <Search size={14} />
+            <span className="pr-8">Search…</span>
+            <Kbd>⌘K</Kbd>
+          </button>
+
           <div className="ml-auto flex flex-wrap items-center gap-2">
-            {hostPools && hostPools.length > 1 ? (
-              <select
-                value={selectedPools.length === 1 ? selectedPools[0] : ""}
-                onChange={(event) => setHostPools(event.target.value ? [event.target.value] : [])}
-                className="h-8 max-w-[14rem] rounded-lg border border-[var(--border-strong)] bg-[var(--surface-1)] px-2 text-[13px]"
-              >
-                <option value="">All host pools</option>
-                {hostPools.map((pool) => (
-                  <option key={pool.resourceId} value={pool.resourceId}>
-                    {pool.friendlyName ?? pool.name} · {pool.tenantName}
-                  </option>
-                ))}
-              </select>
-            ) : null}
-            <TenantSwitcher tenants={me.tenants} />
-            <TimeRangePicker />
+            <ScopeBar me={me} />
             <ThemeToggle />
           </div>
         </header>
-        <main className="min-w-0 flex-1 p-4">{children}</main>
+
+        <main className="min-w-0 flex-1 p-4 lg:p-5">{children}</main>
       </div>
     </div>
   );
@@ -241,18 +267,38 @@ export function PageHeader({
   title,
   description,
   actions,
+  breadcrumb,
 }: {
-  title: string;
+  title: ReactNode;
   description?: ReactNode;
   actions?: ReactNode;
+  breadcrumb?: { label: string; href?: string }[];
 }) {
   return (
-    <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-      <div>
-        <h1 className="text-lg font-semibold tracking-tight">{title}</h1>
-        {description ? <p className="mt-0.5 text-sm text-[var(--text-muted)]">{description}</p> : null}
+    <div className="mb-4">
+      {breadcrumb && breadcrumb.length > 0 ? (
+        <nav className="mb-1.5 flex items-center gap-1.5 text-[12px] text-[var(--text-muted)]">
+          {breadcrumb.map((crumb, index) => (
+            <span key={crumb.label} className="flex items-center gap-1.5">
+              {crumb.href ? (
+                <Link href={crumb.href} className="hover:text-[var(--text-primary)]">
+                  {crumb.label}
+                </Link>
+              ) : (
+                <span>{crumb.label}</span>
+              )}
+              {index < breadcrumb.length - 1 ? <span className="opacity-60">/</span> : null}
+            </span>
+          ))}
+        </nav>
+      ) : null}
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="truncate text-lg font-semibold tracking-tight">{title}</h1>
+          {description ? <p className="mt-0.5 text-sm text-[var(--text-muted)]">{description}</p> : null}
+        </div>
+        {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
       </div>
-      {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { resolveRange, type TimeGrain, type TimePreset } from "@avd/core";
+import { resolveRange, type TimeGrain, type TimePreset } from "@dashflow/core";
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { browserTimeZone } from "./utils";
 

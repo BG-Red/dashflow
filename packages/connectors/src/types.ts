@@ -1,4 +1,4 @@
-import type { ConnectionConfig, DiagnosticCheck, Discovery, SyncBatch, SyncStream } from "@avd/core";
+import type { ConnectionConfig, DiagnosticCheck, Discovery, SyncBatch, SyncStream } from "@dashflow/core";
 
 export interface ConnectorLogger {
   debug(obj: unknown, msg?: string): void;

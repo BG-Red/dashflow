@@ -48,12 +48,14 @@ export function csvEscape(value: unknown): string {
   return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 }
 
-export function downloadCsv(filename: string, rows: Record<string, unknown>[]): void {
+export function downloadCsv(filename: string, rows: object[]): void {
   if (rows.length === 0) return;
   const columns = [...new Set(rows.flatMap((row) => Object.keys(row)))];
   const body = [
     columns.join(","),
-    ...rows.map((row) => columns.map((column) => csvEscape(row[column])).join(",")),
+    ...rows.map((row) =>
+      columns.map((column) => csvEscape((row as Record<string, unknown>)[column])).join(","),
+    ),
   ].join("\n");
   const url = URL.createObjectURL(new Blob([body], { type: "text/csv;charset=utf-8" }));
   const link = document.createElement("a");

@@ -1,22 +1,39 @@
 import {
   type DashboardSpec,
+  defaultLayout,
+  GRID_COLUMNS,
+  GRID_ROW_HEIGHT,
   METRICS_BY_ID,
-  SIZE_SPEC,
   type TimePreset,
-  vizResultKind,
-  type WidgetSize,
   type WidgetSpec,
-} from "@avd/core";
+} from "@dashflow/core";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Download, Pencil, Plus, Save, Settings2, Trash2, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Copy, Download, Pencil, Plus, RefreshCw, Save, Settings2, Star, Trash2, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { GridLayout, type Layout, type LayoutItem } from "react-grid-layout";
 import { useLocation } from "wouter";
+import { DrillDrawer, type DrillRequest } from "../components/drill-drawer";
 import { PageHeader } from "../components/layout";
-import { Alert, Badge, Button, Card, EmptyState, Select, Skeleton, Switch } from "../components/ui";
-import { WidgetCard } from "../components/widgets";
+import {
+  Badge,
+  Button,
+  Card,
+  EmptyState,
+  Input,
+  MultiSelect,
+  SegmentedControl,
+  Select,
+  Skeleton,
+  Switch,
+  useToast,
+} from "../components/ui";
+import { type DrillTarget, WidgetCard } from "../components/widgets";
 import { api, type Catalog } from "../lib/api";
 import { useScope } from "../lib/scope";
-import { downloadCsv } from "../lib/utils";
+import { useElementWidth } from "../lib/use-measure";
+import { cn, downloadCsv } from "../lib/utils";
+
+const DRAG_HANDLE = "df-drag-handle";
 
 /** One request per widget, batched into a single round trip. */
 function buildQueries(
@@ -43,13 +60,26 @@ function buildQueries(
   }));
 }
 
+const REFRESH_OPTIONS = [
+  { value: "off", label: "Off" },
+  { value: "30", label: "30s" },
+  { value: "60", label: "1m" },
+  { value: "300", label: "5m" },
+] as const;
+
+type RefreshValue = (typeof REFRESH_OPTIONS)[number]["value"];
+
 export function DashboardView({ id, catalog }: { id: string; catalog: Catalog }) {
   const queryClient = useQueryClient();
   const scope = useScope();
+  const toast = useToast();
   const [, navigate] = useLocation();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<DashboardSpec | null>(null);
   const [showAdd, setShowAdd] = useState(false);
+  const [drill, setDrill] = useState<DrillRequest | null>(null);
+  const [refresh, setRefresh] = useState<RefreshValue>("off");
+  const { ref: gridRef, width, measured } = useElementWidth<HTMLDivElement>();
 
   const { data: dashboard, isLoading } = useQuery({
     queryKey: ["dashboard", id],
@@ -61,18 +91,19 @@ export function DashboardView({ id, catalog }: { id: string; catalog: Catalog })
   }, [dashboard, editing]);
 
   const spec: DashboardSpec | null = draft ?? (dashboard ? toSpec(dashboard) : null);
-  const widgets = spec?.widgets ?? [];
+  const widgets = useMemo(() => (spec ? defaultLayout(spec.widgets) : []), [spec]);
 
   const queries = useMemo(
     () => (widgets.length > 0 ? buildQueries(widgets, scope, spec?.tenantScope ?? null) : []),
-    [widgets, scope.tenantIds, scope.hostPools, spec?.tenantScope, scope],
+    [widgets, scope, spec?.tenantScope],
   );
 
   const results = useQuery({
     queryKey: ["dashboard-data", id, queries],
-    queryFn: () => api.queryBatch({ tz: scope.tz, queries: queries.map((q) => ({ ...q })) }),
+    queryFn: () => api.queryBatch({ tz: scope.tz, queries: queries.map((query) => ({ ...query })) }),
     enabled: queries.length > 0,
     staleTime: 30_000,
+    refetchInterval: refresh === "off" ? false : Number(refresh) * 1000,
   });
 
   const save = useMutation({
@@ -82,13 +113,65 @@ export function DashboardView({ id, catalog }: { id: string; catalog: Catalog })
       await queryClient.invalidateQueries({ queryKey: ["dashboards"] });
       setEditing(false);
       setDraft(null);
+      toast.success("Dashboard saved");
     },
+    onError: (error) => toast.error("Could not save", (error as Error).message),
   });
 
   const remove = useMutation({
     mutationFn: () => api.deleteDashboard(id),
-    onSuccess: () => navigate("/"),
+    onSuccess: () => {
+      toast.success("Dashboard deleted");
+      navigate("/");
+    },
   });
+
+  const duplicate = useMutation({
+    mutationFn: () => api.duplicateDashboard(id),
+    onSuccess: (result) => {
+      toast.success("Copied", "You are now looking at your own copy.");
+      navigate(`/dashboards/${result.id}`);
+    },
+  });
+
+  const favorite = useMutation({
+    mutationFn: (next: boolean) => api.setFavorite(id, next),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["dashboards"] });
+      void queryClient.invalidateQueries({ queryKey: ["dashboard", id] });
+    },
+  });
+
+  const update = useCallback(
+    (next: Partial<DashboardSpec>) =>
+      setDraft((current) => ({ ...(current ?? (spec as DashboardSpec)), ...next })),
+    [spec],
+  );
+
+  const onLayoutChange = useCallback(
+    (layout: Layout) => {
+      if (!editing || !spec) return;
+      const byId = new Map<string, LayoutItem>(layout.map((item) => [item.i, item]));
+      const nextWidgets = spec.widgets.map((widget) => {
+        const position = byId.get(widget.id);
+        return position
+          ? { ...widget, layout: { x: position.x, y: position.y, w: position.w, h: position.h } }
+          : widget;
+      });
+      // Only rewrite the draft when something actually moved, or every render loops.
+      const changed = nextWidgets.some((widget, index) => {
+        const before = spec.widgets[index]?.layout;
+        return (
+          before?.x !== widget.layout?.x ||
+          before?.y !== widget.layout?.y ||
+          before?.w !== widget.layout?.w ||
+          before?.h !== widget.layout?.h
+        );
+      });
+      if (changed) update({ widgets: nextWidgets });
+    },
+    [editing, spec, update],
+  );
 
   if (isLoading || !dashboard || !spec) {
     return (
@@ -104,10 +187,20 @@ export function DashboardView({ id, catalog }: { id: string; catalog: Catalog })
   }
 
   const byKey = new Map((results.data?.results ?? []).map((entry) => [entry.key, entry]));
-  const update = (next: Partial<DashboardSpec>) => setDraft({ ...spec, ...next });
   const updateWidget = (widgetId: string, next: Partial<WidgetSpec>) =>
     update({
       widgets: spec.widgets.map((widget) => (widget.id === widgetId ? { ...widget, ...next } : widget)),
+    });
+
+  const openDrill = (widget: WidgetSpec) => (target: DrillTarget) =>
+    setDrill({
+      ...target,
+      metric: widget.metric,
+      groupBy: widget.groupBy,
+      tenantIds: spec.tenantScope ?? scope.tenantIds,
+      hostPools: [...(widget.filters.hostPools ?? []), ...scope.hostPools],
+      rangeFrom: scope.range.from.toISOString(),
+      rangeTo: scope.range.to.toISOString(),
     });
 
   const exportCsv = () => {
@@ -137,12 +230,44 @@ export function DashboardView({ id, catalog }: { id: string; catalog: Catalog })
   return (
     <>
       <PageHeader
+        breadcrumb={[{ label: "Dashboards", href: "/" }, { label: spec.name }]}
         title={spec.name}
         description={spec.description || undefined}
         actions={
           <>
+            <SegmentedControl
+              size="sm"
+              ariaLabel="Auto refresh"
+              value={refresh}
+              onChange={(value) => setRefresh(value)}
+              options={REFRESH_OPTIONS.map((option) => ({
+                value: option.value,
+                label: option.label,
+                title: option.value === "off" ? "No auto refresh" : `Refresh every ${option.label}`,
+              }))}
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              aria-label={dashboard.favorite ? "Remove from favourites" : "Add to favourites"}
+              onClick={() => favorite.mutate(!dashboard.favorite)}
+            >
+              <Star
+                size={15}
+                className={dashboard.favorite ? "fill-[var(--warning)] text-[var(--warning)]" : ""}
+              />
+            </Button>
             <Button variant="outline" size="sm" onClick={exportCsv} disabled={!results.data}>
               <Download size={14} /> CSV
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              aria-label="Refresh"
+              onClick={() => results.refetch()}
+              disabled={results.isFetching}
+            >
+              <RefreshCw size={14} className={results.isFetching ? "animate-spin" : ""} />
             </Button>
             {dashboard.canEdit ? (
               editing ? (
@@ -162,32 +287,33 @@ export function DashboardView({ id, catalog }: { id: string; catalog: Catalog })
                   </Button>
                 </>
               ) : (
-                <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
-                  <Pencil size={14} /> Edit
-                </Button>
+                <>
+                  <Button variant="ghost" size="sm" aria-label="Duplicate" onClick={() => duplicate.mutate()}>
+                    <Copy size={14} />
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
+                    <Pencil size={14} /> Edit
+                  </Button>
+                </>
               )
-            ) : null}
+            ) : (
+              <Button variant="outline" size="sm" onClick={() => duplicate.mutate()}>
+                <Copy size={14} /> Make a copy
+              </Button>
+            )}
           </>
         }
       />
-
-      {save.isError ? (
-        <div className="mb-3">
-          <Alert tone="critical" title="Could not save">
-            {(save.error as Error).message}
-          </Alert>
-        </div>
-      ) : null}
 
       {editing ? (
         <Card className="mb-3 space-y-3 p-3">
           <div className="flex flex-wrap items-end gap-3">
             <label className="text-sm">
               <span className="mb-1 block text-xs text-[var(--text-muted)]">Name</span>
-              <input
+              <Input
                 value={spec.name}
                 onChange={(event) => update({ name: event.target.value })}
-                className="h-9 w-56 rounded-lg border border-[var(--border-strong)] bg-[var(--surface-1)] px-3 text-sm"
+                className="w-56"
               />
             </label>
             <label className="text-sm">
@@ -229,8 +355,7 @@ export function DashboardView({ id, catalog }: { id: string; catalog: Catalog })
                 label="Pin customers"
               />
               <span className="text-[var(--text-secondary)]">
-                Pin to the current customer selection
-                {spec.tenantScope ? ` (${spec.tenantScope.length})` : ""}
+                Pin to the current customers{spec.tenantScope ? ` (${spec.tenantScope.length})` : ""}
               </span>
             </div>
             <div className="ml-auto flex gap-2">
@@ -248,6 +373,10 @@ export function DashboardView({ id, catalog }: { id: string; catalog: Catalog })
               </Button>
             </div>
           </div>
+
+          <p className="text-xs text-[var(--text-muted)]">
+            Drag a widget by its title to move it, or pull the bottom-right corner to resize.
+          </p>
 
           {showAdd ? (
             <AddWidgetPanel
@@ -281,35 +410,64 @@ export function DashboardView({ id, catalog }: { id: string; catalog: Catalog })
           />
         </Card>
       ) : (
-        <div className="grid grid-cols-12 gap-3">
-          {widgets.map((widget) => {
-            const entry = byKey.get(widget.id);
-            const metric = METRICS_BY_ID[widget.metric];
-            return (
-              <WidgetCard
-                key={widget.id}
-                widget={widget}
-                result={entry?.result}
-                error={entry?.error}
-                loading={results.isPending}
-                betterWhen={metric?.betterWhen ?? "neutral"}
-                actions={
-                  editing ? (
-                    <WidgetEditor
+        /* The grid needs a real width: rendering before the container is measured would lay
+           every widget out against a guess and then visibly jump. */
+        <div ref={gridRef} className={cn(editing && "df-editing")}>
+          {!measured ? (
+            <Skeleton className="h-64 w-full" />
+          ) : (
+            <GridLayout
+              className="layout"
+              width={width}
+              gridConfig={{
+                cols: GRID_COLUMNS,
+                rowHeight: GRID_ROW_HEIGHT,
+                margin: [12, 12],
+                containerPadding: [0, 0],
+              }}
+              dragConfig={{ enabled: editing, handle: `.${DRAG_HANDLE}` }}
+              resizeConfig={{ enabled: editing }}
+              onLayoutChange={onLayoutChange}
+              layout={widgets.map((widget) => ({ i: widget.id, ...widget.layout, minW: 2, minH: 3 }))}
+            >
+              {widgets.map((widget) => {
+                const entry = byKey.get(widget.id);
+                const metric = METRICS_BY_ID[widget.metric];
+                return (
+                  <div key={widget.id}>
+                    <WidgetCard
+                      fill
+                      dragHandleClass={editing ? DRAG_HANDLE : undefined}
                       widget={widget}
-                      catalog={catalog}
-                      onChange={(next) => updateWidget(widget.id, next)}
-                      onRemove={() =>
-                        update({ widgets: spec.widgets.filter((candidate) => candidate.id !== widget.id) })
+                      result={entry?.result}
+                      error={entry?.error}
+                      loading={results.isPending}
+                      betterWhen={metric?.betterWhen ?? "neutral"}
+                      onDrill={editing ? undefined : openDrill(widget)}
+                      actions={
+                        editing ? (
+                          <WidgetEditor
+                            widget={widget}
+                            catalog={catalog}
+                            onChange={(next) => updateWidget(widget.id, next)}
+                            onRemove={() =>
+                              update({
+                                widgets: spec.widgets.filter((candidate) => candidate.id !== widget.id),
+                              })
+                            }
+                          />
+                        ) : null
                       }
                     />
-                  ) : null
-                }
-              />
-            );
-          })}
+                  </div>
+                );
+              })}
+            </GridLayout>
+          )}
         </div>
       )}
+
+      <DrillDrawer request={drill} onClose={() => setDrill(null)} />
     </>
   );
 }
@@ -327,25 +485,35 @@ function WidgetEditor({
 }) {
   const [open, setOpen] = useState(false);
   const metric = catalog.metrics.find((candidate) => candidate.id === widget.metric);
+  const [filterDim, setFilterDim] = useState<string>("");
+
+  const { data: values } = useQuery({
+    queryKey: ["dim-values", widget.metric, filterDim],
+    queryFn: () => api.dimensionValues(widget.metric, filterDim),
+    enabled: Boolean(filterDim),
+  });
+
+  const dims = (widget.filters.dims ?? {}) as Record<string, string[]>;
+  const selectedValues = filterDim ? (dims[filterDim] ?? null) : null;
 
   return (
     <div className="relative">
       <Button
         variant="ghost"
-        size="sm"
+        size="xs"
         onClick={() => setOpen((value) => !value)}
         aria-label="Widget settings"
       >
         <Settings2 size={14} />
       </Button>
       {open ? (
-        <div className="absolute right-0 z-30 mt-1 w-64 space-y-2 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-3 shadow-xl">
+        <div className="absolute right-0 z-30 mt-1 w-72 space-y-2 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-1)] p-3 shadow-[var(--elev-3)]">
           <label className="block text-xs text-[var(--text-muted)]">
             Title
-            <input
+            <Input
+              className="mt-1 h-8"
               value={widget.title}
               onChange={(event) => onChange({ title: event.target.value })}
-              className="mt-1 h-8 w-full rounded-md border border-[var(--border-strong)] bg-[var(--surface-1)] px-2 text-sm text-[var(--text-primary)]"
             />
           </label>
           <label className="block text-xs text-[var(--text-muted)]">
@@ -379,26 +547,58 @@ function WidgetEditor({
               ))}
             </Select>
           </label>
-          <label className="block text-xs text-[var(--text-muted)]">
-            Size
+
+          <div className="space-y-1.5 border-t border-[var(--border)] pt-2">
+            <p className="text-xs text-[var(--text-muted)]">Filter</p>
             <Select
-              className="mt-1 h-8 w-full"
-              value={widget.size}
-              onChange={(event) => onChange({ size: event.target.value as WidgetSize })}
+              className="h-8 w-full"
+              value={filterDim}
+              onChange={(event) => setFilterDim(event.target.value)}
             >
-              {(Object.keys(SIZE_SPEC) as WidgetSize[]).map((size) => (
-                <option key={size} value={size}>
-                  {size} ({SIZE_SPEC[size].span}/12)
+              <option value="">Pick a dimension…</option>
+              {(metric?.dims ?? []).map((dim) => (
+                <option key={dim} value={dim}>
+                  {catalog.dimensions[dim]?.label ?? dim}
                 </option>
               ))}
             </Select>
-          </label>
-          <div className="flex items-center justify-between pt-1">
-            <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>
-              <X size={14} /> Close
+            {filterDim ? (
+              <MultiSelect
+                className="w-full"
+                allLabel="Any value"
+                options={(values?.values ?? []).map((item) => ({
+                  value: item.value,
+                  label: item.value,
+                  hint: `${item.hits} rows`,
+                }))}
+                selected={selectedValues}
+                onChange={(next) => {
+                  const nextDims = { ...dims };
+                  if (next === null || next.length === 0) delete nextDims[filterDim];
+                  else nextDims[filterDim] = next;
+                  onChange({
+                    filters: { ...widget.filters, dims: nextDims as WidgetSpec["filters"]["dims"] },
+                  });
+                }}
+              />
+            ) : null}
+            {Object.keys(dims).length > 0 ? (
+              <div className="flex flex-wrap gap-1 pt-1">
+                {Object.entries(dims).map(([dim, list]) => (
+                  <Badge key={dim} tone="accent">
+                    {catalog.dimensions[dim]?.short ?? dim}: {list.length}
+                  </Badge>
+                ))}
+              </div>
+            ) : null}
+          </div>
+
+          <div className="flex items-center justify-between border-t border-[var(--border)] pt-2">
+            <Button variant="ghost" size="xs" onClick={() => setOpen(false)}>
+              <X size={13} /> Close
             </Button>
-            <Button variant="danger" size="sm" onClick={onRemove}>
-              <Trash2 size={14} /> Remove
+            <Button variant="danger" size="xs" onClick={onRemove}>
+              <Trash2 size={13} /> Remove
             </Button>
           </div>
         </div>
@@ -412,12 +612,12 @@ function AddWidgetPanel({ catalog, onAdd }: { catalog: Catalog; onAdd: (widget: 
   const metrics = catalog.metrics.filter((metric) => metric.category === category);
 
   return (
-    <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)] p-3">
+    <div className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] p-3">
       <div className="mb-2 flex flex-wrap gap-1.5">
         {Object.entries(catalog.categories).map(([key, info]) => (
           <Button
             key={key}
-            size="sm"
+            size="xs"
             variant={key === category ? "default" : "outline"}
             onClick={() => setCategory(key)}
           >
@@ -444,7 +644,7 @@ function AddWidgetPanel({ catalog, onAdd }: { catalog: Catalog; onAdd: (widget: 
                 size: metric.viz.includes("kpi") ? "sm" : "md",
               })
             }
-            className="rounded-lg border border-[var(--border)] bg-[var(--surface-1)] p-2.5 text-left transition-colors hover:border-[var(--accent)] disabled:opacity-50"
+            className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-1)] p-2.5 text-left transition-colors hover:border-[var(--accent)] disabled:opacity-50"
           >
             <p className="text-[13px] font-medium text-[var(--text-primary)]">{metric.label}</p>
             <p className="mt-0.5 line-clamp-2 text-[11px] text-[var(--text-muted)]">{metric.description}</p>
@@ -472,5 +672,3 @@ function toSpec(dashboard: Awaited<ReturnType<typeof api.dashboard>>): Dashboard
     sharedWithRole: dashboard.sharedWithRole,
   };
 }
-
-export { vizResultKind };

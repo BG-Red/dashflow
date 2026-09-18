@@ -1,5 +1,5 @@
-import { roleSchema } from "@avd/core";
-import { schema } from "@avd/db";
+import { roleSchema } from "@dashflow/core";
+import { schema } from "@dashflow/db";
 import { and, eq, isNull } from "drizzle-orm";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";

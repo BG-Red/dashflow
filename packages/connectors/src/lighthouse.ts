@@ -1,4 +1,4 @@
-import type { DiagnosticCheck, Discovery, LighthouseConfig, SyncBatch } from "@avd/core";
+import type { DiagnosticCheck, Discovery, LighthouseConfig, SyncBatch } from "@dashflow/core";
 import { AzureCollector } from "./azure/collectors";
 import { createTokenFn } from "./azure/credentials";
 import { type Connector, type ConnectorContext, check, type SyncInput } from "./types";

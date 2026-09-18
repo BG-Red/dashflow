@@ -1,4 +1,4 @@
-import { schema } from "@avd/db";
+import { schema } from "@dashflow/db";
 import { desc, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";

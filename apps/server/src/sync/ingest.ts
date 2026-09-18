@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
-import type { SyncBatch } from "@avd/core";
-import { type Db, schema } from "@avd/db";
+import type { SyncBatch } from "@dashflow/core";
+import { type Db, schema } from "@dashflow/db";
 import { eq, sql } from "drizzle-orm";
 import type { AppContext } from "../context";
 

@@ -1,4 +1,4 @@
-import type { ConnectionConfig } from "@avd/core";
+import type { ConnectionConfig } from "@dashflow/core";
 import { createAzureConnector } from "./azure-direct";
 import { createDemoConnector } from "./demo";
 import { createLighthouseConnector } from "./lighthouse";

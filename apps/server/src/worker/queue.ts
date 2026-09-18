@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { schema } from "@avd/db";
+import { schema } from "@dashflow/db";
 import { and, eq, sql } from "drizzle-orm";
 import type { AppContext } from "../context";
 

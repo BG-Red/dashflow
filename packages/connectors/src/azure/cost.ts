@@ -1,4 +1,4 @@
-import type { CostRecord } from "@avd/core";
+import type { CostRecord } from "@dashflow/core";
 import { httpJson, type TokenFn } from "../http";
 import { API } from "./arm";
 import { SCOPES } from "./credentials";

@@ -1,4 +1,4 @@
-import type { ConnectionType } from "@avd/core";
+import type { ConnectionType } from "@dashflow/core";
 
 /**
  * The prerequisite steps for each connection type, with copyable commands. Values the
@@ -41,8 +41,8 @@ export function prerequisiteSteps(
           title: "Create an app registration (or use this container's managed identity)",
           body: "A managed identity is the safer option when you run this on Azure — there is no secret to store or rotate. Use an app registration when the app runs elsewhere.",
           codeLabel: "az cli",
-          code: `az ad app create --display-name "AVD Dashboards"
-APP_ID=$(az ad app list --display-name "AVD Dashboards" --query "[0].appId" -o tsv)
+          code: `az ad app create --display-name "DashFlow"
+APP_ID=$(az ad app list --display-name "DashFlow" --query "[0].appId" -o tsv)
 az ad sp create --id "$APP_ID"
 # Create a client secret (store it in Key Vault, not in a file)
 az ad app credential reset --id "$APP_ID" --years 1 --query password -o tsv`,
@@ -74,8 +74,8 @@ az ad app credential reset --id "$APP_ID" --years 1 --query password -o tsv`,
           title: "Create the app registration in your managing tenant",
           body: "One identity in the managing tenant is all you need — Lighthouse projects it into every delegated customer subscription.",
           codeLabel: "az cli",
-          code: `az ad app create --display-name "AVD Dashboards (Lighthouse)"
-APP_ID=$(az ad app list --display-name "AVD Dashboards (Lighthouse)" --query "[0].appId" -o tsv)
+          code: `az ad app create --display-name "DashFlow (Lighthouse)"
+APP_ID=$(az ad app list --display-name "DashFlow (Lighthouse)" --query "[0].appId" -o tsv)
 az ad sp create --id "$APP_ID"
 # Note the service principal OBJECT id — Lighthouse authorizations use it
 az ad sp show --id "$APP_ID" --query id -o tsv`,
@@ -134,8 +134,8 @@ offline_access`,
           title: "Create an app registration for this app",
           body: "Nerdio's REST API authenticates with client credentials from the tenant that hosts Nerdio Manager. Create the app, add a secret, then authorize it in Nerdio's REST API settings.",
           codeLabel: "az cli",
-          code: `az ad app create --display-name "AVD Dashboards (Nerdio)"
-APP_ID=$(az ad app list --display-name "AVD Dashboards (Nerdio)" --query "[0].appId" -o tsv)
+          code: `az ad app create --display-name "DashFlow (Nerdio)"
+APP_ID=$(az ad app list --display-name "DashFlow (Nerdio)" --query "[0].appId" -o tsv)
 az ad sp create --id "$APP_ID"
 az ad app credential reset --id "$APP_ID" --years 1 --query password -o tsv`,
         },

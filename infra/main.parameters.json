@@ -3,7 +3,7 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "name": { "value": "avddash" },
-    "image": { "value": "ghcr.io/bg-red/avd-dashboards:latest" },
+    "image": { "value": "ghcr.io/bg-red/dashflow:latest" },
     "authClientId": { "value": "00000000-0000-0000-0000-000000000000" },
     "authClientSecret": { "value": "" },
     "bootstrapOwnerObjectIds": { "value": [] },

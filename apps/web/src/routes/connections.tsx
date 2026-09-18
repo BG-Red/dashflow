@@ -1,4 +1,4 @@
-import { CONNECTION_TYPE_INFO, type ConnectionType, type DiagnosticCheck } from "@avd/core";
+import { CONNECTION_TYPE_INFO, type ConnectionType, type DiagnosticCheck } from "@dashflow/core";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, ExternalLink, Plug, RefreshCw, Search, Trash2, TriangleAlert } from "lucide-react";
 import { useState } from "react";

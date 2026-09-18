@@ -1,4 +1,4 @@
-# AVD Dashboards
+# DashFlow
 
 Self-hosted dashboards for Azure Virtual Desktop. One container, one Postgres database, and
 your own Entra sign-in — no SaaS, no data leaving your tenant.
@@ -25,8 +25,8 @@ the same dashboards.
 ## Try it in two minutes
 
 ```bash
-git clone https://github.com/BG-Red/AVD_Dashboards.git
-cd AVD_Dashboards
+git clone https://github.com/BG-Red/dashflow.git
+cd dashflow
 docker compose up --build
 ```
 
@@ -48,7 +48,7 @@ bun run start
 ## Deploy to Azure
 
 ```bash
-IMAGE=ghcr.io/bg-red/avd-dashboards:latest ./infra/deploy.sh
+IMAGE=ghcr.io/bg-red/dashflow:latest ./infra/deploy.sh
 ```
 
 That creates a Container Apps environment with **Container Apps authentication (EasyAuth)** in

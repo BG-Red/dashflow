@@ -8,7 +8,7 @@ import type {
   Role,
   SyncSchedule,
   WidgetSpec,
-} from "@avd/core";
+} from "@dashflow/core";
 
 export class ApiError extends Error {
   constructor(
@@ -139,6 +139,99 @@ export interface HostPoolOption {
   location: string;
 }
 
+export interface ErrorGroup {
+  code: string;
+  source: string;
+  serviceError: boolean;
+  hits: number;
+  pools: number;
+  tenants: number;
+  lastSeen: string | null;
+  sample: string | null;
+}
+
+export interface TopUser {
+  user: string;
+  connections: number;
+  failed: number;
+  pools: number;
+  connectP95: number | null;
+  hours: number;
+  lastSeen: string | null;
+}
+
+export interface PoolDetail {
+  pool: {
+    resourceId: string;
+    name: string;
+    friendlyName: string | null;
+    location: string;
+    poolType: string;
+    loadBalancer: string | null;
+    maxSessions: number | null;
+    autoscaleEnabled: boolean | null;
+    startVmOnConnect: boolean | null;
+    validationEnvironment: boolean | null;
+    sources: string[];
+    subscriptionId: string | null;
+    updatedAt: string;
+    tenantId: string;
+    tenantName: string;
+  };
+  hosts: {
+    resourceId: string;
+    name: string;
+    status: string;
+    allowNewSession: boolean;
+    sessions: number;
+    agentVersion: string | null;
+    osVersion: string | null;
+    lastHeartBeat: string | null;
+    updateState: string | null;
+    source: string;
+  }[];
+}
+
+export interface HostDetail {
+  host: {
+    resourceId: string;
+    name: string;
+    status: string;
+    allowNewSession: boolean;
+    sessions: number;
+    agentVersion: string | null;
+    osVersion: string | null;
+    lastHeartBeat: string | null;
+    updateState: string | null;
+    vmResourceId: string | null;
+    source: string;
+    tenantId: string;
+    tenantName: string;
+    hostPoolId: string;
+    hostPoolName: string;
+    hostPoolFriendlyName: string | null;
+  };
+  health: Record<string, unknown>[];
+  errors: Record<string, unknown>[];
+}
+
+export interface SettingsPayload {
+  instance: { name: string; organizationName: string };
+  runtime: {
+    version: string;
+    commit: string;
+    authMode: string;
+    appRole: string;
+    demoMode: boolean;
+    pseudonymizeUsers: boolean;
+    keyVault: boolean;
+    encryptionKey: boolean;
+    tokenValidation: boolean;
+    allowedTenants: string[];
+  };
+  counts: { connections: number; customers: number; dashboards: number };
+}
+
 export interface DashboardListItem {
   id: string;
   name: string;
@@ -150,6 +243,7 @@ export interface DashboardListItem {
   defaultPreset: string;
   tenantScope: string[] | null;
   isOwner: boolean;
+  favorite: boolean;
   updatedAt: string;
 }
 
@@ -157,6 +251,7 @@ export interface DashboardDetail extends DashboardSpec {
   id: string;
   isOwner: boolean;
   canEdit: boolean;
+  favorite: boolean;
   updatedAt: string;
 }
 
@@ -233,19 +328,31 @@ export const api = {
   saveDashboard: (id: string, body: DashboardSpec) =>
     request<{ ok: true }>(`/dashboards/${id}`, { method: "PUT", body: JSON.stringify(body) }),
   deleteDashboard: (id: string) => request<{ ok: true }>(`/dashboards/${id}`, { method: "DELETE" }),
+  duplicateDashboard: (id: string) => post<{ id: string }>(`/dashboards/${id}/duplicate`),
+  setFavorite: (id: string, favorite: boolean) =>
+    request<{ ok: true }>(`/dashboards/${id}/favorite`, { method: favorite ? "PUT" : "DELETE" }),
 
   query: (body: QueryRequest & { tz?: string }) => post<QueryResult>("/query", body),
   queryBatch: (body: { tz: string; queries: ({ key: string } & QueryRequest)[] }) =>
     post<BatchQueryResult>("/query/batch", body),
   detail: (body: {
+    metric?: string;
     from: string;
     to: string;
     tenantIds: string[] | null;
     hostPools: string[];
-    state?: "all" | "connected" | "failed";
+    groupBy?: string;
+    groupValue?: string;
     limit?: number;
   }) =>
-    post<{ rows: Record<string, string | number | null>[]; pseudonymized: boolean }>("/query/detail", body),
+    post<{ rows: Record<string, string | number | null>[]; pseudonymized: boolean; table?: string }>(
+      "/query/detail",
+      body,
+    ),
+  dimensionValues: (metric: string, dim: string) =>
+    request<{ values: { value: string; hits: number }[] }>(
+      `/query/values?metric=${encodeURIComponent(metric)}&dim=${encodeURIComponent(dim)}`,
+    ),
 
   syncRuns: () =>
     request<{ runs: SyncRun[]; queue: { queued: number; running: number; failed: number } }>("/sync/runs"),
@@ -255,6 +362,17 @@ export const api = {
     backfill?: boolean;
     customerTenantId?: string;
   }) => post<{ queued: number }>("/sync/trigger", body),
+
+  pool: (resourceId: string) => request<PoolDetail>(`/entities/pools/${encodeURIComponent(resourceId)}`),
+  host: (poolId: string, name: string) =>
+    request<HostDetail>(`/entities/hosts/${encodeURIComponent(poolId)}/${encodeURIComponent(name)}`),
+  errorGroups: (days: number) => request<{ groups: ErrorGroup[] }>(`/entities/errors?days=${days}`),
+  topUsers: (days: number) =>
+    request<{ users: TopUser[]; pseudonymized: boolean }>(`/entities/users?days=${days}`),
+
+  settings: () => request<SettingsPayload>("/settings"),
+  saveSettings: (body: { name: string; organizationName: string }) =>
+    request<{ ok: true }>("/settings", { method: "PUT", body: JSON.stringify(body) }),
 
   users: () => request<UserRow[]>("/users"),
   grantRole: (userId: string, body: { role: Role; customerTenantId: string | null }) =>

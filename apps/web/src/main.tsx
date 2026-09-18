@@ -2,8 +2,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./app";
+import { ToastProvider } from "./components/ui";
 import { ScopeProvider } from "./lib/scope";
 import { ThemeProvider } from "./lib/theme";
+import "react-grid-layout/css/styles.css";
 import "./styles.css";
 
 const queryClient = new QueryClient({
@@ -28,9 +30,11 @@ createRoot(root).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <ScopeProvider>
-          <App />
-        </ScopeProvider>
+        <ToastProvider>
+          <ScopeProvider>
+            <App />
+          </ScopeProvider>
+        </ToastProvider>
       </ThemeProvider>
     </QueryClientProvider>
   </StrictMode>,

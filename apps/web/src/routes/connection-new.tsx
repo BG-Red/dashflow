@@ -1,4 +1,4 @@
-import { CONNECTION_TYPE_INFO, type ConnectionType, type DiagnosticCheck } from "@avd/core";
+import { CONNECTION_TYPE_INFO, type ConnectionType, type DiagnosticCheck } from "@dashflow/core";
 import { useMutation } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight, CheckCircle2, ExternalLink, Search, Sparkles } from "lucide-react";
 import { useState } from "react";
@@ -286,7 +286,7 @@ export function ConnectionNew({ me }: { me: Me }) {
               <Input
                 value={form.keyVaultName}
                 disabled={!me.instance.canUseKeyVault}
-                placeholder="avd-dashboards-client-secret"
+                placeholder="dashflow-client-secret"
                 onChange={(event) => set({ keyVaultName: event.target.value.trim() })}
               />
             </Field>

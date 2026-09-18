@@ -1,5 +1,5 @@
 {
-  "name": "@avd/server",
+  "name": "@dashflow/server",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -8,10 +8,10 @@
     "start": "bun src/index.ts"
   },
   "dependencies": {
-    "@avd/connectors": "workspace:*",
-    "@avd/core": "workspace:*",
-    "@avd/db": "workspace:*",
-    "@avd/demo": "workspace:*",
+    "@dashflow/connectors": "workspace:*",
+    "@dashflow/core": "workspace:*",
+    "@dashflow/db": "workspace:*",
+    "@dashflow/demo": "workspace:*",
     "@azure/identity": "4.13.3",
     "@azure/keyvault-secrets": "4.11.2",
     "drizzle-orm": "0.45.2",

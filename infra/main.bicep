@@ -1,4 +1,4 @@
-// AVD Dashboards — Azure Container Apps deployment.
+// DashFlow — Azure Container Apps deployment.
 //
 // What this creates:
 //   Log Analytics (for the app's own logs) · Container Apps environment
@@ -13,12 +13,12 @@ targetScope = 'resourceGroup'
 @description('Short name used as a prefix for every resource.')
 @minLength(3)
 @maxLength(12)
-param name string = 'avddash'
+param name string = 'dashflow'
 
 @description('Location for all resources.')
 param location string = resourceGroup().location
 
-@description('Container image to run, e.g. ghcr.io/<owner>/avd-dashboards:v0.1.0')
+@description('Container image to run, e.g. ghcr.io/bg-red/dashflow:v0.1.0')
 param image string
 
 @description('Entra app registration (client) ID used by Container Apps authentication.')
@@ -56,8 +56,8 @@ param appEncryptionKey string = ''
 
 var suffix = uniqueString(resourceGroup().id)
 var prefix = toLower('${name}${substring(suffix, 0, 5)}')
-var dbName = 'avd'
-var tags = { app: 'avd-dashboards', 'azd-env-name': name }
+var dbName = 'dashflow'
+var tags = { app: 'dashflow', 'azd-env-name': name }
 
 // ─── identity ───────────────────────────────────────────────────────────────────
 

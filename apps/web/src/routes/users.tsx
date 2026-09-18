@@ -1,4 +1,4 @@
-import { ROLE_INFO, type Role } from "@avd/core";
+import { ROLE_INFO, type Role } from "@dashflow/core";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { UserPlus, X } from "lucide-react";
 import { useState } from "react";

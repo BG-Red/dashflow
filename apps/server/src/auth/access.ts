@@ -1,5 +1,5 @@
-import { type Access, hasRole, type Role, roleRank } from "@avd/core";
-import { type Db, schema } from "@avd/db";
+import { type Access, hasRole, type Role, roleRank } from "@dashflow/core";
+import { type Db, schema } from "@dashflow/db";
 import { and, eq, isNull } from "drizzle-orm";
 import type { Principal } from "./easyauth";
 

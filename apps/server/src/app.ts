@@ -10,8 +10,10 @@ import type { AppContext } from "./context";
 import { SecretError } from "./lib/secrets";
 import { connectionRoutes } from "./routes/connections";
 import { dashboardRoutes } from "./routes/dashboards";
+import { entityRoutes } from "./routes/entities";
 import { metaRoutes } from "./routes/meta";
 import { queryRoutes } from "./routes/query";
+import { settingsRoutes } from "./routes/settings";
 import { syncRoutes } from "./routes/sync";
 import { tenantRoutes } from "./routes/tenants";
 import { userRoutes } from "./routes/users";
@@ -55,6 +57,8 @@ export function createApp(ctx: AppContext) {
   api.route("/dashboards", dashboardRoutes(ctx));
   api.route("/query", queryRoutes(ctx));
   api.route("/sync", syncRoutes(ctx));
+  api.route("/entities", entityRoutes(ctx));
+  api.route("/settings", settingsRoutes(ctx));
   api.route("/users", userRoutes(ctx));
   app.route("/api", api);
 

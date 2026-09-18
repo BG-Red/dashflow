@@ -25,8 +25,8 @@ bun install
 docker compose up postgres -d
 cp .env.example .env    # set DATABASE_URL and APP_ENCRYPTION_KEY
 bun run db:migrate
-bun run --filter '@avd/server' dev    # API on :3000
-bun run --filter '@avd/web' dev       # UI on :5173, proxies /api
+bun run --filter '@dashflow/server' dev    # API on :3000
+bun run --filter '@dashflow/web' dev       # UI on :5173, proxies /api
 ```
 
 `DEMO_MODE=true` seeds a synthetic connection on first boot, so you can work on dashboards
@@ -38,7 +38,7 @@ without an Azure tenant.
 bun run lint
 bun run typecheck
 bun test
-TEST_DATABASE_URL=postgres://avd:avd@localhost:5432/avd_test bun test   # includes the SQL tests
+TEST_DATABASE_URL=postgres://dashflow:dashflow@localhost:5432/dashflow_test bun test   # includes the SQL tests
 ```
 
 ## Where things live

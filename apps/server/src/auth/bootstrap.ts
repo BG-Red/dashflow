@@ -1,5 +1,5 @@
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
-import { type Db, schema } from "@avd/db";
+import { type Db, schema } from "@dashflow/db";
 import { eq } from "drizzle-orm";
 import type { Logger } from "../lib/log";
 import { grantRole, ownerExists } from "./access";
@@ -43,7 +43,7 @@ export async function ensureBootstrapCode(db: Db, log: Logger): Promise<void> {
     value: { hash: hash(code), createdAt: new Date().toISOString() } satisfies BootstrapSetting,
   });
   log.info(
-    `\n\n  ┌─ AVD Dashboards first-run setup ──────────────────────────────┐\n  │  Open the app and enter this code to become the owner:        │\n  │                                                               │\n  │      ${code}${" ".repeat(Math.max(0, 25 - code.length))}                       │\n  │                                                               │\n  │  It is only accepted until the first owner is created.        │\n  └───────────────────────────────────────────────────────────────┘\n`,
+    `\n\n  ┌─ DashFlow first-run setup ──────────────────────────────┐\n  │  Open the app and enter this code to become the owner:        │\n  │                                                               │\n  │      ${code}${" ".repeat(Math.max(0, 25 - code.length))}                       │\n  │                                                               │\n  │  It is only accepted until the first owner is created.        │\n  └───────────────────────────────────────────────────────────────┘\n`,
   );
 }
 

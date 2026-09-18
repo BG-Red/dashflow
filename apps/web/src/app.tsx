@@ -10,6 +10,11 @@ import { CustomersPage } from "./routes/customers";
 import { DashboardNew } from "./routes/dashboard-new";
 import { DashboardView } from "./routes/dashboard-view";
 import { DashboardsList } from "./routes/dashboards-list";
+import { ErrorsPage } from "./routes/errors";
+import { ExplorePage } from "./routes/explore";
+import { HostDetailPage } from "./routes/host-detail";
+import { PoolDetailPage } from "./routes/pool-detail";
+import { SettingsPage } from "./routes/settings";
 import { SyncPage } from "./routes/sync";
 import { UsersPage } from "./routes/users";
 
@@ -38,7 +43,7 @@ export function App() {
         <Alert tone="critical" title="Could not load your session">
           {(me.error as Error).message}
           <p className="mt-2 text-xs text-[var(--text-muted)]">
-            This app expects to sit behind Azure Container Apps authentication. If you are running it locally,
+            DashFlow expects to sit behind Azure Container Apps authentication. If you are running it locally,
             start the server with AUTH_MODE=dev.
           </p>
         </Alert>
@@ -80,6 +85,23 @@ export function App() {
           {(params) => <DashboardView id={params.id!} catalog={catalog.data} />}
         </Route>
         <Route
+          path="/explore"
+          component={() => <ExplorePage catalog={catalog.data} canSave={canEditDashboards} />}
+        />
+        <Route path="/pools/:id">
+          {(params) => <PoolDetailPage resourceId={decodeURIComponent(params.id!)} />}
+        </Route>
+        <Route path="/hosts/:pool/:name">
+          {(params) => (
+            <HostDetailPage
+              poolId={decodeURIComponent(params.pool!)}
+              name={decodeURIComponent(params.name!)}
+            />
+          )}
+        </Route>
+        <Route path="/errors" component={() => <ErrorsPage />} />
+        <Route path="/customers" component={() => <CustomersPage canEdit={isAdmin} />} />
+        <Route
           path="/connections"
           component={() => (isAdmin ? <ConnectionsPage me={data} /> : <Forbidden need="admin" />)}
         />
@@ -87,11 +109,14 @@ export function App() {
           path="/connections/new"
           component={() => (isAdmin ? <ConnectionNew me={data} /> : <Forbidden need="admin" />)}
         />
-        <Route path="/customers" component={() => <CustomersPage canEdit={isAdmin} />} />
         <Route path="/sync" component={() => (isAdmin ? <SyncPage /> : <Forbidden need="admin" />)} />
         <Route
           path="/users"
           component={() => (isAdmin ? <UsersPage me={data} /> : <Forbidden need="admin" />)}
+        />
+        <Route
+          path="/settings"
+          component={() => (isAdmin ? <SettingsPage me={data} /> : <Forbidden need="admin" />)}
         />
         <Route>
           <Card className="p-6 text-sm text-[var(--text-muted)]">That page does not exist.</Card>

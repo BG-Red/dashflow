@@ -8,7 +8,7 @@ import type {
   SessionHostRecord,
   SessionSnapshotRecord,
   SyncBatch,
-} from "@avd/core";
+} from "@dashflow/core";
 
 /**
  * Synthetic AVD data for demo mode, screenshots and tests. Every name here is a Microsoft

@@ -1,6 +1,12 @@
 import { createHash } from "node:crypto";
-import type { DiagnosticCheck, Discovery, HostHealthRecord, SessionHostRecord, SyncBatch } from "@avd/core";
-import { normalizeResourceId, parseResourceId } from "@avd/core";
+import type {
+  DiagnosticCheck,
+  Discovery,
+  HostHealthRecord,
+  SessionHostRecord,
+  SyncBatch,
+} from "@dashflow/core";
+import { normalizeResourceId, parseResourceId } from "@dashflow/core";
 import type { TokenFn } from "../http";
 import { type ConnectorError, type ConnectorLogger, check, type SyncInput } from "../types";
 import { API, type ArmClient, createArmClient } from "./arm";

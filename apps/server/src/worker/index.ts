@@ -1,7 +1,8 @@
-import type { SyncStream } from "@avd/core";
-import { schema } from "@avd/db";
+import type { SyncStream } from "@dashflow/core";
+import { schema } from "@dashflow/db";
 import { and, eq, sql } from "drizzle-orm";
 import type { AppContext } from "../context";
+import { deriveAutoscaleEvents } from "../sync/autoscale";
 import { applyRetention, runDiscovery, syncOne, testConnection } from "../sync/runner";
 import { claim, complete, enqueue, fail, type Job, requeueStale, workerId } from "./queue";
 
@@ -78,14 +79,18 @@ export async function scheduleDueWork(ctx: AppContext): Promise<number> {
 
 async function handle(ctx: AppContext, job: Job): Promise<void> {
   switch (job.type) {
-    case "sync":
+    case "sync": {
+      const stream = job.payload.stream as SyncStream;
       await syncOne(ctx, {
         connectionId: String(job.payload.connectionId),
         customerTenantId: String(job.payload.customerTenantId),
-        stream: job.payload.stream as SyncStream,
+        stream,
         backfill: Boolean(job.payload.backfill),
       });
+      // Host state changes only become visible once new health snapshots have landed.
+      if (stream === "sessions" || stream === "inventory") await deriveAutoscaleEvents(ctx);
       return;
+    }
     case "discovery": {
       const connection = await ctx.db.query.connections.findFirst({
         where: eq(schema.connections.id, String(job.payload.connectionId)),

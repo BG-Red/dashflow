@@ -1,5 +1,5 @@
-import type { DiagnosticCheck, Discovery, SyncBatch } from "@avd/core";
-import { demoBatch, demoTenants } from "@avd/demo";
+import type { DiagnosticCheck, Discovery, SyncBatch } from "@dashflow/core";
+import { demoBatch, demoTenants } from "@dashflow/demo";
 import { type Connector, type ConnectorContext, check, type SyncInput } from "./types";
 
 interface DemoConfig {

@@ -1,6 +1,6 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
-import type { SecretInput } from "@avd/core";
-import { type Db, schema } from "@avd/db";
+import type { SecretInput } from "@dashflow/core";
+import { type Db, schema } from "@dashflow/db";
 import { eq } from "drizzle-orm";
 import type { Env } from "../env";
 import type { Logger } from "./log";

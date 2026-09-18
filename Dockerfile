@@ -15,7 +15,7 @@ COPY packages/demo/package.json packages/demo/
 RUN bun install --frozen-lockfile
 
 COPY . .
-RUN bun run --filter '@avd/web' build
+RUN bun run --filter '@dashflow/web' build
 
 # Drop dev dependencies from the layer we copy forward.
 RUN rm -rf node_modules && bun install --frozen-lockfile --production

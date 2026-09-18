@@ -23,7 +23,7 @@ export function ClaimPage({ me }: { me: Me }) {
           AVD
         </span>
         <div>
-          <h1 className="text-base font-semibold tracking-tight">AVD Dashboards</h1>
+          <h1 className="text-base font-semibold tracking-tight">DashFlow</h1>
           <p className="text-xs text-[var(--text-muted)]">Self-hosted Azure Virtual Desktop insight</p>
         </div>
       </div>

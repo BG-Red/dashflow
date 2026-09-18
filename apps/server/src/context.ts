@@ -1,4 +1,4 @@
-import { createDb, type Db, type SqlClient } from "@avd/db";
+import { createDb, type Db, type SqlClient } from "@dashflow/db";
 import type { Env } from "./env";
 import { createLogger, type Logger } from "./lib/log";
 import { SecretStore } from "./lib/secrets";

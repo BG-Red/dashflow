@@ -5,8 +5,8 @@ import {
   DIMENSIONS,
   METRICS,
   ROLE_INFO,
-} from "@avd/core";
-import { schema } from "@avd/db";
+} from "@dashflow/core";
+import { schema } from "@dashflow/db";
 import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { resolveAccess } from "../auth/access";

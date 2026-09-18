@@ -1,4 +1,4 @@
-import { METRICS_BY_ID, type TimePreset, type WidgetSpec } from "@avd/core";
+import { METRICS_BY_ID, type TimePreset, type WidgetSpec } from "@dashflow/core";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight, Check, Sparkles } from "lucide-react";
 import { useMemo, useState } from "react";

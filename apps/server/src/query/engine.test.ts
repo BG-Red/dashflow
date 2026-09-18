@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, test } from "bun:test";
-import type { Access, QueryRequest } from "@avd/core";
-import { createDb, schema } from "@avd/db";
-import { runMigrations } from "@avd/db/migrate";
+import type { Access, QueryRequest } from "@dashflow/core";
+import { createDb, schema } from "@dashflow/db";
+import { runMigrations } from "@dashflow/db/migrate";
 import { sql } from "drizzle-orm";
 import { QueryError, runQuery } from "./engine";
 

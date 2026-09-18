@@ -1,5 +1,5 @@
 {
-  "name": "avd-dashboards",
+  "name": "dashflow",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -7,10 +7,10 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "bun run --filter '@avd/server' dev & bun run --filter '@avd/web' dev",
-    "build": "bun run --filter '@avd/web' build",
+    "dev": "bun run --filter '@dashflow/server' dev & bun run --filter '@dashflow/web' dev",
+    "build": "bun run --filter '@dashflow/web' build",
     "start": "bun apps/server/src/index.ts",
-    "db:generate": "bun run --filter '@avd/db' generate",
+    "db:generate": "bun run --filter '@dashflow/db' generate",
     "db:migrate": "bun packages/db/src/migrate.ts",
     "demo:seed": "bun packages/demo/src/seed.ts",
     "test": "bun test",
