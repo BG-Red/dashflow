@@ -38,7 +38,7 @@ without an Azure tenant.
 bun run lint
 bun run typecheck
 bun test
-TEST_DATABASE_URL=postgres://dashflow:dashflow@localhost:5432/dashflow_test bun test   # includes the SQL tests
+TEST_DATABASE_URL=postgres://dashflow:dashflow@localhost:5432/dashflow_test bun run test   # includes the SQL tests
 ```
 
 ## Where things live

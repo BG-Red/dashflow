@@ -7,7 +7,7 @@ export type WidgetSize = z.infer<typeof widgetSizeSchema>;
 
 /** Column span on a 12-column grid, a body height, and the grid rows a size occupies. */
 export const SIZE_SPEC: Record<WidgetSize, { span: number; height: number; rows: number }> = {
-  sm: { span: 3, height: 120, rows: 4 },
+  sm: { span: 3, height: 120, rows: 3 },
   md: { span: 6, height: 260, rows: 7 },
   lg: { span: 6, height: 360, rows: 9 },
   xl: { span: 12, height: 380, rows: 10 },

@@ -139,6 +139,9 @@ export interface HostPoolOption {
   location: string;
 }
 
+/** A row of raw facts behind a chart point; columns vary by table. */
+export type DetailRow = Record<string, string | number | boolean | null>;
+
 export interface ErrorGroup {
   code: string;
   source: string;
@@ -281,7 +284,7 @@ export interface BatchQueryResult {
   results: { key: string; result?: QueryResult; error?: string }[];
 }
 
-export const api = {
+const httpApi = {
   me: () => request<Me>("/me"),
   claim: (code: string) => post<{ ok: boolean }>("/setup/claim", { code }),
   catalog: () => request<Catalog>("/catalog"),
@@ -344,11 +347,7 @@ export const api = {
     groupBy?: string;
     groupValue?: string;
     limit?: number;
-  }) =>
-    post<{ rows: Record<string, string | number | null>[]; pseudonymized: boolean; table?: string }>(
-      "/query/detail",
-      body,
-    ),
+  }) => post<{ rows: DetailRow[]; pseudonymized: boolean; table?: string }>("/query/detail", body),
   dimensionValues: (metric: string, dim: string) =>
     request<{ values: { value: string; hits: number }[] }>(
       `/query/values?metric=${encodeURIComponent(metric)}&dim=${encodeURIComponent(dim)}`,
@@ -382,3 +381,12 @@ export const api = {
   setDisabled: (userId: string, disabled: boolean) =>
     post<{ ok: true }>(`/users/${userId}/disabled`, { disabled }),
 };
+
+/**
+ * The hosted demo ships the same UI with a mock client, so the whole app is clickable with no
+ * server. `import.meta.env.VITE_MOCK_API` is replaced at build time, so the branch not taken —
+ * and the demo data generator behind it — is dropped from the production bundle.
+ */
+export const api = (
+  import.meta.env.VITE_MOCK_API === "1" ? (await import("./api-mock")).mockApi : httpApi
+) as typeof httpApi;

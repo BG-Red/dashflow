@@ -4,9 +4,15 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./dataset": "./src/dataset.ts",
+    "./evaluator": "./src/evaluator.ts"
   },
   "dependencies": {
     "@dashflow/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@dashflow/db": "workspace:*",
+    "drizzle-orm": "0.45.2"
   }
 }

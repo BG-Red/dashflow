@@ -37,11 +37,30 @@ jobs:
       - name: Typecheck (web)
         run: bunx tsc --noEmit -p apps/web/tsconfig.json
       - name: Test
-        run: bun test
+        run: bun run test
         env:
           TEST_DATABASE_URL: postgres://dashflow:dashflow@localhost:5432/dashflow_test
       - name: Build web
         run: bun run build
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+      - run: bun install --frozen-lockfile
+      - name: Install the browser
+        run: bunx playwright install --with-deps chromium
+      - name: End-to-end (demo build, no database)
+        run: bunx playwright test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report
+          retention-days: 7
 
   secrets:
     runs-on: ubuntu-latest

@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit -p tsconfig.json && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:demo": "vite build --mode demo"
   },
   "dependencies": {
     "@dashflow/core": "workspace:*",
@@ -19,7 +20,8 @@
     "react-dom": "19.3.0",
     "react-grid-layout": "2.2.4",
     "tailwind-merge": "3.7.0",
-    "wouter": "3.11.0"
+    "wouter": "3.11.0",
+    "@dashflow/demo": "workspace:*"
   },
   "devDependencies": {
     "@tailwindcss/vite": "4.3.3",

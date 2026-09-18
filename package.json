@@ -13,15 +13,18 @@
     "db:generate": "bun run --filter '@dashflow/db' generate",
     "db:migrate": "bun packages/db/src/migrate.ts",
     "demo:seed": "bun packages/demo/src/seed.ts",
-    "test": "bun test",
+    "test": "bun test apps packages",
     "typecheck": "tsc -b",
     "lint": "biome check .",
     "format": "biome format --write .",
     "secrets:scan": "gitleaks detect --config .gitleaks.toml --redact -v",
-    "prepare": "lefthook install || true"
+    "prepare": "lefthook install || true",
+    "build:demo": "bun run --filter '@dashflow/web' build:demo",
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.14",
+    "@playwright/test": "1.63.0",
     "@types/bun": "1.4.2",
     "lefthook": "2.1.14",
     "typescript": "5.9.3"
