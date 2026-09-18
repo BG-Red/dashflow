@@ -69,7 +69,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Scan history for secrets and tenant identifiers
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         env:
           GITLEAKS_CONFIG: .gitleaks.toml
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
