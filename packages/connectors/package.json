@@ -1,0 +1,15 @@
+{
+  "name": "@dashflow/connectors",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@dashflow/core": "workspace:*",
+    "@azure/identity": "4.13.3",
+    "zod": "4.6.5",
+    "@dashflow/demo": "workspace:*"
+  }
+}

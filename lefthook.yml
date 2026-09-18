@@ -1,0 +1,8 @@
+pre-commit:
+  parallel: true
+  commands:
+    gitleaks:
+      run: bash scripts/gitleaks-precommit.sh
+    biome:
+      glob: "*.{ts,tsx,json}"
+      run: bunx biome check --no-errors-on-unmatched {staged_files}

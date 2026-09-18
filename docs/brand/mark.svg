@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="DashFlow">
+  <title>DashFlow</title>
+  <defs>
+    <linearGradient id="df-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3987e5"/>
+      <stop offset="1" stop-color="#1c5cab"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="15" fill="url(#df-bg)"/>
+  <!-- Three dashes flowing up and to the right: a dashboard's bars, read as motion. -->
+  <g fill="#fff" fill-opacity="0.96">
+    <rect x="13" y="40" width="16" height="6" rx="3"/>
+    <rect x="19" y="29" width="24" height="6" rx="3" fill-opacity="0.82"/>
+    <rect x="27" y="18" width="24" height="6" rx="3" fill-opacity="0.64"/>
+  </g>
+</svg>

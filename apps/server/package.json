@@ -1,0 +1,26 @@
+{
+  "name": "@dashflow/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "start": "bun src/index.ts"
+  },
+  "dependencies": {
+    "@dashflow/connectors": "workspace:*",
+    "@dashflow/core": "workspace:*",
+    "@dashflow/db": "workspace:*",
+    "@dashflow/demo": "workspace:*",
+    "@azure/identity": "4.13.3",
+    "@azure/keyvault-secrets": "4.11.2",
+    "drizzle-orm": "0.45.2",
+    "hono": "4.13.8",
+    "jose": "6.2.12",
+    "pino": "10.3.1",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "pino-pretty": "13.1.3"
+  }
+}

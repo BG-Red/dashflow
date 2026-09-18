@@ -1,0 +1,373 @@
+@import "tailwindcss";
+@import "@fontsource-variable/inter";
+
+/*
+ * DashFlow design tokens.
+ *
+ * Dark is the designed default — this is a console people keep open all day — and light is
+ * designed second rather than inverted. The eight categorical series colours and the
+ * sequential ramp are a validated palette: they clear the lightness, chroma, colour-vision
+ * and contrast gates in both modes. Re-pick them only by re-running that validation.
+ */
+:root {
+  color-scheme: dark;
+
+  /* Elevation ladder: page → panel → raised → overlay. */
+  --surface-0: #0c0e12;
+  --surface-1: #12151b;
+  --surface-2: #181c23;
+  --surface-3: #20252e;
+  --border: #252b35;
+  --border-strong: #38404d;
+
+  --text-primary: #f2f4f8;
+  --text-secondary: #b3bccb;
+  --text-muted: #7d8899;
+
+  --accent: #3987e5;
+  --accent-hover: #4f95e9;
+  --accent-ink: #ffffff;
+  --accent-soft: #14243a;
+
+  --good: #35b37e;
+  --warning: #d9a029;
+  --serious: #d95926;
+  --critical: #e2575a;
+  --good-soft: #10261e;
+  --warning-soft: #2a2211;
+  --critical-soft: #2c1618;
+
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --series-5: #d55181;
+  --series-6: #008300;
+  --series-7: #9085e9;
+  --series-8: #e66767;
+
+  /* Sequential ramp: near-zero recedes into the dark surface. */
+  --seq-1: #0d366b;
+  --seq-2: #104281;
+  --seq-3: #184f95;
+  --seq-4: #256abf;
+  --seq-5: #3987e5;
+  --seq-6: #86b6ef;
+
+  --grid: #1f242d;
+
+  --elev-1: 0 1px 2px rgb(0 0 0 / 0.4);
+  --elev-2: 0 4px 16px -4px rgb(0 0 0 / 0.5);
+  --elev-3: 0 18px 48px -12px rgb(0 0 0 / 0.65);
+
+  --radius: 10px;
+  --radius-sm: 7px;
+  --radius-lg: 14px;
+
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+
+    --surface-0: #f6f7f9;
+    --surface-1: #ffffff;
+    --surface-2: #f1f3f6;
+    --surface-3: #e8ebf0;
+    --border: #e3e6ec;
+    --border-strong: #c8cdd7;
+
+    --text-primary: #0e1116;
+    --text-secondary: #4d5666;
+    --text-muted: #68707f;
+
+    --accent: #2a78d6;
+    --accent-hover: #2166bb;
+    --accent-ink: #ffffff;
+    --accent-soft: #e9f1fd;
+
+    --good: #16794c;
+    --warning: #9a6b00;
+    --serious: #c2481b;
+    --critical: #c93a3d;
+    --good-soft: #e7f5ee;
+    --warning-soft: #fdf4e3;
+    --critical-soft: #fdecec;
+
+    --series-1: #2a78d6;
+    --series-2: #eb6834;
+    --series-3: #1baf7a;
+    --series-4: #eda100;
+    --series-5: #e87ba4;
+    --series-6: #008300;
+    --series-7: #4a3aa7;
+    --series-8: #e34948;
+
+    --seq-1: #cde2fb;
+    --seq-2: #9ec5f4;
+    --seq-3: #6da7ec;
+    --seq-4: #3987e5;
+    --seq-5: #256abf;
+    --seq-6: #184f95;
+
+    --grid: #ebedf1;
+
+    --elev-1: 0 1px 2px rgb(16 24 40 / 0.06);
+    --elev-2: 0 6px 20px -6px rgb(16 24 40 / 0.14);
+    --elev-3: 0 20px 48px -16px rgb(16 24 40 / 0.22);
+  }
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --surface-0: #f6f7f9;
+  --surface-1: #ffffff;
+  --surface-2: #f1f3f6;
+  --surface-3: #e8ebf0;
+  --border: #e3e6ec;
+  --border-strong: #c8cdd7;
+
+  --text-primary: #0e1116;
+  --text-secondary: #4d5666;
+  --text-muted: #68707f;
+
+  --accent: #2a78d6;
+  --accent-hover: #2166bb;
+  --accent-ink: #ffffff;
+  --accent-soft: #e9f1fd;
+
+  --good: #16794c;
+  --warning: #9a6b00;
+  --serious: #c2481b;
+  --critical: #c93a3d;
+  --good-soft: #e7f5ee;
+  --warning-soft: #fdf4e3;
+  --critical-soft: #fdecec;
+
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --series-5: #e87ba4;
+  --series-6: #008300;
+  --series-7: #4a3aa7;
+  --series-8: #e34948;
+
+  --seq-1: #cde2fb;
+  --seq-2: #9ec5f4;
+  --seq-3: #6da7ec;
+  --seq-4: #3987e5;
+  --seq-5: #256abf;
+  --seq-6: #184f95;
+
+  --grid: #ebedf1;
+
+  --elev-1: 0 1px 2px rgb(16 24 40 / 0.06);
+  --elev-2: 0 6px 20px -6px rgb(16 24 40 / 0.14);
+  --elev-3: 0 20px 48px -16px rgb(16 24 40 / 0.22);
+}
+
+@theme inline {
+  --color-surface-0: var(--surface-0);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-ink: var(--text-primary);
+  --color-ink-secondary: var(--text-secondary);
+  --color-ink-muted: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-good: var(--good);
+  --color-warning: var(--warning);
+  --color-serious: var(--serious);
+  --color-critical: var(--critical);
+  --radius-card: var(--radius);
+  --shadow-e1: var(--elev-1);
+  --shadow-e2: var(--elev-2);
+  --shadow-e3: var(--elev-3);
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--surface-0);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-feature-settings: "cv02", "cv03", "cv04", "ss01";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  border-color: var(--border);
+}
+
+/* Numbers that sit in columns or change in place must not jitter. */
+.tnum,
+table td,
+table th {
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--text-primary);
+}
+
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Scrollbars that belong to a dark console rather than the OS default. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+  background-clip: content-box;
+}
+
+@keyframes df-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes df-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes df-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes df-slide-in {
+  from {
+    transform: translateX(16px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@keyframes df-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.df-fade-in {
+  animation: df-fade-up 200ms var(--ease);
+}
+
+.df-fade {
+  animation: df-fade 160ms var(--ease);
+}
+
+.df-slide-in {
+  animation: df-slide-in 220ms var(--ease);
+}
+
+.df-skeleton {
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 50%, var(--surface-2) 75%);
+  background-size: 200% 100%;
+  animation: df-shimmer 1.4s infinite linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    /* biome-ignore lint/complexity/noImportantStyles: this has to beat every utility class */
+    animation-duration: 0.01ms !important;
+    /* biome-ignore lint/complexity/noImportantStyles: this has to beat every utility class */
+    animation-iteration-count: 1 !important;
+    /* biome-ignore lint/complexity/noImportantStyles: this has to beat every utility class */
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* react-grid-layout: themed placeholder and resize handle. */
+.react-grid-item.react-grid-placeholder {
+  background: var(--accent);
+  opacity: 0.16;
+  border-radius: var(--radius);
+  transition-duration: 120ms;
+}
+
+.react-grid-item > .react-resizable-handle {
+  width: 18px;
+  height: 18px;
+  right: 2px;
+  bottom: 2px;
+  opacity: 0;
+  transition: opacity 120ms var(--ease);
+  cursor: se-resize;
+}
+
+.react-grid-item > .react-resizable-handle::after {
+  content: "";
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid var(--text-muted);
+  border-bottom: 2px solid var(--text-muted);
+  border-radius: 0 0 2px 0;
+}
+
+.df-editing .react-grid-item:hover > .react-resizable-handle {
+  opacity: 1;
+}
+
+.df-editing .react-grid-item {
+  cursor: grab;
+}
+
+.df-editing .react-grid-item.react-draggable-dragging {
+  cursor: grabbing;
+  box-shadow: var(--elev-3);
+  z-index: 20;
+}
