@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # ─── build ──────────────────────────────────────────────────────────────────────
-FROM oven/bun:1.3-alpine AS build
+FROM oven/bun:1.4-alpine AS build
 WORKDIR /app
 
 # Install with the lockfile first so dependency layers cache.
@@ -21,7 +21,7 @@ RUN bun run --filter '@dashflow/web' build
 RUN rm -rf node_modules && bun install --frozen-lockfile --production
 
 # ─── runtime ────────────────────────────────────────────────────────────────────
-FROM oven/bun:1.3-alpine AS runtime
+FROM oven/bun:1.4-alpine AS runtime
 WORKDIR /app
 
 ENV NODE_ENV=production \
