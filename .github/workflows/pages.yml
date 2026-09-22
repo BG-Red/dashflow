@@ -30,7 +30,7 @@ jobs:
           DEMO_BASE: /dashflow/
       - name: Single-page fallback for deep links
         run: cp apps/web/dist-demo/index.html apps/web/dist-demo/404.html
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: apps/web/dist-demo
 
