@@ -14,7 +14,7 @@
     "@dashflow/demo": "workspace:*",
     "@azure/identity": "4.13.3",
     "@azure/keyvault-secrets": "4.11.2",
-    "drizzle-orm": "0.45.2",
+    "drizzle-orm": "0.45.3",
     "hono": "4.13.8",
     "jose": "6.2.12",
     "pino": "10.3.1",
